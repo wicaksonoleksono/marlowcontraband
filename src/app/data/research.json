@@ -1,0 +1,17 @@
+[
+  {
+    "id": "ml-ai",
+    "title": "Machine Learning & AI",
+    "description": "Exploring neural networks, deep learning architectures, and their applications in real-world problems."
+  },
+  {
+    "id": "web-tech",
+    "title": "Web Technologies", 
+    "description": "Research into modern web frameworks, performance optimization, and user experience improvements."
+  },
+  {
+    "id": "data-science",
+    "title": "Data Science",
+    "description": "Statistical analysis, data visualization, and predictive modeling for business intelligence."
+  }
+]

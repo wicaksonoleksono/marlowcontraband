@@ -28,13 +28,13 @@
   }
 }
 
-html, body {
+html,
+body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-jetbrains-mono), monospace;
   overflow-x: hidden;
   overflow-y: auto;
-  scroll-behavior: smooth;
 }
 
 .alegreya-font {
@@ -49,4 +49,29 @@ html, body {
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
+}
+html {
+  scroll-padding-top: 100px;
+}
+
+section[id] {
+  animation: fadeInUp 0.6s ease-out;
+}
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.animate-cursor {
+  display: inline-block;
+  margin-left: 4px;
+  font-weight: bold;
+  animation: blink 0.4s steps(1) infinite; /* on/off, no fade */
 }

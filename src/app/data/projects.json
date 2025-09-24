@@ -1,0 +1,21 @@
+[
+  {
+    "id": "project-1",
+    "title": "Project 1",
+    "description": "Description of your awesome project goes here.",
+    "stack": ["React", "Next.js"],
+    "github": "https://github.com/yourusername/project1"
+  },
+  {
+    "id": "project-2", 
+    "title": "Project 2",
+    "description": "Another cool project with different technologies.",
+    "stack": ["Python", "AI"]
+  },
+  {
+    "id": "project-3",
+    "title": "Project 3", 
+    "description": "Work in progress project, coming soon.",
+    "stack": ["TypeScript", "Node.js"]
+  }
+]

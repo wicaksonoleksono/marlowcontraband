@@ -21,7 +21,7 @@ export const pagesConfig: PageConfig[] = [
   {
     id: "research",
     route: "#research",
-    displayName: "Open to Research",
+    displayName: "Research ?",
     anchor: "#research",
   },
 ];
