@@ -43,7 +43,7 @@ export default function StreamingTextOnLock({
       if (!isActive.current || hasPlayed.current) return;
 
       const scrollDelta = e.deltaY;
-      const scrollPerToken = 20;
+      const scrollPerToken = 3;
       const totalScrollRequired = tokens.length * scrollPerToken;
 
       progress.current += scrollDelta / totalScrollRequired;
