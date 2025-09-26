@@ -1,5 +1,4 @@
 // app/components/animate/StreamingTextOnLock.tsx
-
 "use client";
 
 import React, { useEffect, useRef, useState, useMemo } from "react";
@@ -12,14 +11,22 @@ gsap.registerPlugin(ScrollTrigger);
 interface Props {
   text: string;
   mode?: "char" | "word";
+  replay?: boolean; // NEW: if true, allow replay. default false (one-shot).
 }
 
-export default function StreamingTextOnLock({ text, mode = "char" }: Props) {
+export default function StreamingTextOnLock({
+  text,
+  mode = "char",
+  replay = false,
+}: Props) {
   const ref = useRef<HTMLParagraphElement>(null);
   const [count, setCount] = useState(0);
   const lenis = useLenis();
+
   const isActive = useRef(false);
   const progress = useRef(0);
+  const hasPlayed = useRef(false); // NEW
+
   const tokens = useMemo(() => {
     if (mode === "char") return Array.from(text.trim());
     return text
@@ -28,84 +35,75 @@ export default function StreamingTextOnLock({ text, mode = "char" }: Props) {
       .map((w, i, arr) => (i < arr.length - 1 ? w + " " : w));
   }, [text, mode]);
 
-  // Effect for setting up the scroll trigger and wheel listener
   useEffect(() => {
     if (!lenis) return;
 
-    // Use GSAP Context for easy cleanup
+    let st: ScrollTrigger | null = null; // NEW
+    const handleWheel = (e: WheelEvent) => {
+      if (!isActive.current || hasPlayed.current) return;
+
+      const scrollDelta = e.deltaY;
+      const scrollPerToken = 20;
+      const totalScrollRequired = tokens.length * scrollPerToken;
+
+      progress.current += scrollDelta / totalScrollRequired;
+      progress.current = Math.max(0, Math.min(1, progress.current));
+
+      const newCount = Math.floor(progress.current * tokens.length);
+      setCount(newCount);
+
+      // Finished: release scroll, never re-arm
+      if (progress.current >= 1) {
+        hasPlayed.current = true; // NEW
+        isActive.current = false;
+        lenis.start();
+
+        // Tear down listeners and trigger so it won't re-fire. // NEW
+        window.removeEventListener("wheel", handleWheel as any);
+        if (st) st.kill();
+      }
+    };
+
     const ctx = gsap.context(() => {
-      // 1. SET UP THE TRIGGER
-      const st = ScrollTrigger.create({
+      st = ScrollTrigger.create({
         trigger: ref.current,
         start: "top center",
         end: "bottom center",
         onEnter: () => {
+          if (hasPlayed.current && !replay) return; // NEW: ignore after first run
           isActive.current = true;
           lenis.stop();
         },
         onLeave: () => {
+          if (isActive.current) lenis.start();
           isActive.current = false;
-          lenis.start();
         },
         onLeaveBack: () => {
-          isActive.current = false;
-          lenis.start();
-          progress.current = 0;
-          setCount(0);
+          // If replay is false or we already played, don't reset. // NEW
+          if (hasPlayed.current && !replay) return;
+
+          // Otherwise allow replay by resetting progress. // NEW
+          if (replay) {
+            isActive.current = false;
+            lenis.start();
+            progress.current = 0;
+            setCount(0);
+          }
         },
       });
 
-      // 2. SET UP THE WHEEL LISTENER
-      const handleWheel = (e: WheelEvent) => {
-        if (!isActive.current) return;
-
-        // --- 👇 THE FIX IS HERE 👇 ---
-
-        const scrollDelta = e.deltaY;
-
-        // 💡 Define how much "scroll distance" is needed per character.
-        // Higher number = slower, more granular reveal. Lower = faster.
-        const scrollPerToken = 50;
-
-        // 💡 Calculate the total scroll "distance" required for the whole text.
-        const totalScrollRequired = tokens.length * scrollPerToken;
-
-        // 💡 Calculate the progress increment based on this total distance.
-        const progressIncrement = scrollDelta / totalScrollRequired;
-        progress.current += progressIncrement;
-
-        // --- 👆 END OF FIX 👆 ---
-
-        // Clamp the progress between 0 and 1
-        progress.current = Math.max(0, Math.min(1, progress.current));
-
-        // Update the visible character count
-        const newCount = Math.floor(progress.current * tokens.length);
-        setCount(newCount);
-
-        // 3. UNLOCK WHEN DONE
-        if (progress.current >= 1) {
-          isActive.current = false;
-          lenis.start();
-        }
-      };
-
-      window.addEventListener("wheel", handleWheel);
-
-      // Cleanup function
-      return () => {
-        window.removeEventListener("wheel", handleWheel);
-        st.kill();
-        lenis.start();
-      };
+      window.addEventListener("wheel", handleWheel, { passive: true });
     }, ref);
 
-    return () => ctx.revert();
-  }, [lenis, tokens.length]);
+    return () => {
+      window.removeEventListener("wheel", handleWheel as any);
+      if (st) st.kill();
+      ctx.revert();
+      lenis.start();
+    };
+  }, [lenis, tokens.length, replay]);
 
-  const shown = useMemo(() => {
-    return tokens.slice(0, count).join("");
-  }, [tokens, count]);
+  const shown = useMemo(() => tokens.slice(0, count).join(""), [tokens, count]);
 
   return (
     <p ref={ref}>

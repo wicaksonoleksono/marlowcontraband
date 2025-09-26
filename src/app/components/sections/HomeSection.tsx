@@ -12,19 +12,31 @@ const HomeSection = () => {
       className="min-h-screen grid grid-rows-4 mt-6"
     >
       <div className="flex flex-col items-start">
-        <h1 className="text-4xl font-bold">
-          bash $whoami
-          {/* <span className="animate-pulse">{"|"}</span> */}
-        </h1>
+        <h1 className="text-4xl font-bold">bash $whoami</h1>
         <p className="text-[var(--color-text-light)] max-w-2xl mt-5">
           Marlow Contrabands is an organization initiative with various projects
           and research on Linguistics, Computer Vision, Mathematics, Robotics
-          and fun.?.{"{"}ny{"}"} projects. Anyone can be a part of this
-          initative
+          and other fun.?.{"{"}ny{"}"} projects.
+          <span className="text-[var(--color-primary)]">
+            {" "}
+            Anyone can be a part of this initative towards our open-source
+            projects{" "}
+          </span>
+          To contribute you can see, our github page here
         </p>
       </div>
-      <p className="text-2xl text-right"> Preface</p>
+      <div className="flex flex-col item-top text-justify ">
+        <p className="text-2xl text-right">Scopes of research && projects</p>
+        <p className="pt-2 max-w-2xl text-justify">
+          Natural Language Processing: Machine Translation, Universal
+          Reperesentation, Information Extraction, Context Understanding,
+          Computer Vision: Image Synthesis, Segmentation, Object Detection,
+          Mathematics : Post-quantum Krpyography, Dynamical System, Computation,
+          Robotics: Biomimicry
+        </p>
+      </div>
       <div className="flex flex-col items-top text-justify border-r-4 border-[var(--color-primary)] pr-8 text-sm">
+        <p className="text-xl">Preface</p>
         <StreamingTextOnLock
           text={`
           My old man once told me this line that stuck: curiosity didn’t kill the cat, it taught the cat a valuable lesson. Yeah, it sounds cheesy as fuck, but he wasn’t wrong. What doesn’t kill you doesn’t just make you stronger, it makes you meaner, sharper, 
