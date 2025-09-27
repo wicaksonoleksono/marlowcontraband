@@ -15,10 +15,18 @@ const ResearchSection = () => {
 
       <div className="mb-8">
         <h2 className="text-2xl font-bold mb-4">Current Research Interests</h2>
-        <div className="space-y-4">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {researchAreas.map((area) => (
-            <div key={area.id} className="p-6 border rounded-lg">
+            <div
+              key={area.id}
+              className="p-6 border hover:shadow-lg transition-shadow backdrop-blur-md"
+            >
               <h3 className="text-xl font-bold mb-2">{area.title}</h3>
+              <div className="flex gap-2 flex-wrap mb-3">
+                <span className="px-2 py-1 bg-orange-100 text-orange-800 text-sm rounded">
+                  {area.group.toUpperCase()}
+                </span>
+              </div>
               <p className="text-gray-600">{area.description}</p>
             </div>
           ))}
@@ -28,7 +36,7 @@ const ResearchSection = () => {
       <div className="bg-orange-50 p-6 rounded-lg">
         <h2 className="text-2xl font-bold mb-4">Collaboration</h2>
         <p className="mb-4">
-          I'm always open to collaborating on interesting research projects.
+          We are always open to collaborating on interesting research projects.
           Whether you're working on cutting-edge technology, need help with
           analysis, or want to explore new ideas together, let's connect!
         </p>

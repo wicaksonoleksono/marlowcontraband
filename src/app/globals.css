@@ -30,7 +30,7 @@
 
 html,
 body {
-  background: var(--background);
+  background: transparent;
   color: var(--foreground);
   font-family: var(--font-jetbrains-mono), monospace;
   overflow-x: hidden;

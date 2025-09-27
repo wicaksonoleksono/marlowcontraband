@@ -1,17 +1,53 @@
 [
   {
-    "id": "ml-ai",
-    "title": "Machine Learning & AI",
-    "description": "Exploring neural networks, deep learning architectures, and their applications in real-world problems."
+    "id": "nlp_alignment",
+    "title": "Alignment & Personalization",
+    "group": "nlp",
+    "description": "RLHF, preference modeling, pluralistic alignment; techniques to align large models with human values, individual preferences, and cultural norms."
   },
   {
-    "id": "web-tech",
-    "title": "Web Technologies", 
-    "description": "Research into modern web frameworks, performance optimization, and user experience improvements."
+    "id": "nlp_cognitive",
+    "title": "Cognitive & Human-Inspired Signals",
+    "group": "nlp",
+    "description": "Eye-tracking, reading times, brain alignment, narrative comprehension; grounding NLP models in cognitive data and human processing patterns."
   },
   {
-    "id": "data-science",
-    "title": "Data Science",
-    "description": "Statistical analysis, data visualization, and predictive modeling for business intelligence."
+    "id": "nlp_multilingual",
+    "title": "Multilingual & Low-Resource NLP",
+    "group": "nlp",
+    "description": "Cross-lingual transfer, zero-shot learning, data augmentation, synthetic corpora; addressing linguistic diversity and under-resourced languages."
+  },
+  {
+    "id": "nlp_multimodal",
+    "title": "Multimodal NLP",
+    "group": "nlp",
+    "description": "Language + vision, audio, and video; unified embeddings, modality alignment, richer multimodal representations for reasoning and generation."
+  },
+  {
+    "id": "nlp_trustworthy",
+    "title": "Fact-Checking & Trustworthy NLP",
+    "group": "nlp",
+    "description": "Hallucination detection, verifiability, explainability, and bias mitigation; building reliable and transparent NLP systems for high-stakes domains."
+  },
+  {
+    "id": "cv_3d_and_neural_rendering",
+    "title": "3D & Neural Rendering",
+    "group": "cv",
+
+    "description": "Multi-view reconstruction, neural radiance fields (NeRFs), Gaussian splatting, differentiable imaging, computational imaging pipelines"
+  },
+  {
+    "id": "cv_image_video_synthesis",
+    "title": "Image & Video Synthesis",
+
+    "group": "cv",
+    "description": "Diffusion / GAN models, controllable generation, temporal consistency, video generation, domain transfer"
+  },
+  {
+    "id": "cv_multimodal_and_vision_language",
+    "title": "Multimodal & Vision-Language",
+
+    "group": "cv",
+    "description": "Vision + text / audio, visual reasoning, grounding, embodied perception, vision-language action models"
   }
 ]

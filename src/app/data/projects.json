@@ -1,21 +1,16 @@
 [
   {
     "id": "project-1",
-    "title": "Project 1",
-    "description": "Description of your awesome project goes here.",
-    "stack": ["React", "Next.js"],
-    "github": "https://github.com/yourusername/project1"
+    "title": "marlow's-companion",
+    "description": "A coding tool based off user-stories to plan and built using, indexing technology",
+    "stack": ["python", "rust", "typescript"],
+    "github": "https://github.com/wicaksonoleksono/companion-by-marlow"
   },
   {
-    "id": "project-2", 
-    "title": "Project 2",
-    "description": "Another cool project with different technologies.",
-    "stack": ["Python", "AI"]
-  },
-  {
-    "id": "project-3",
-    "title": "Project 3", 
-    "description": "Work in progress project, coming soon.",
-    "stack": ["TypeScript", "Node.js"]
+    "id": "project-2",
+    "title": "marlow's-curiosity",
+    "description": "A free place to learn like khan academy without gamification rather relies on independences and pure curiosity for 1 grader to college level student or for lifelong learner ",
+    "stack": ["NextJS", "Redis", "Postgre"],
+    "github": "https://github.com/wicaksonoleksono/learnbycuriosity.marlow.com"
   }
 ]
