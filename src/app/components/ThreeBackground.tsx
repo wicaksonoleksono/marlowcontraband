@@ -1,70 +1,72 @@
 "use client";
 
-import React, { useRef, useEffect, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
-// Studio-like environment (no external HDR files needed)
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 
-const ThreeBackground: React.FC = () => {
-  const mountRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number | null>(null);
-  const [isMounted, setIsMounted] = useState(false);
+// global cache so PMREM/env is built once per session
+let __ENV_TEXTURE__: THREE.Texture | null = null;
 
-  useEffect(() => setIsMounted(true), []);
+export default function ThreeBackgroundCanvas() {
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!mountRef.current || !isMounted) return;
+    if (!wrapRef.current || !canvasRef.current) return;
 
     // Scene
     const scene = new THREE.Scene();
 
-    // Camera — tight framing
-    const camera = new THREE.PerspectiveCamera(
-      15, // your request
-      window.innerWidth / window.innerHeight,
-      0.1,
-      200
-    );
+    // Camera (same framing as your last good state)
+    const camera = new THREE.PerspectiveCamera(15, 1, 0.1, 200);
     camera.position.set(-1.8, 1.9, 6.2);
     camera.lookAt(0, 0, 0);
 
-    // Renderer
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
+    // Renderer bound to our <canvas>
+    const renderer = new THREE.WebGLRenderer({
+      canvas: canvasRef.current,
+      antialias: true,
+      alpha: true,
+      powerPreference: "low-power",
+      stencil: false,
+      depth: true,
+      premultipliedAlpha: true,
+      preserveDrawingBuffer: false,
+    });
+    const DPR = Math.min(window.devicePixelRatio || 1, 1.25);
+    renderer.setPixelRatio(DPR);
     renderer.setClearColor(0x000000, 0);
-    renderer.localClippingEnabled = true; // needed for material clipping
+    renderer.localClippingEnabled = true;
     renderer.shadowMap.enabled = false;
 
-    mountRef.current.appendChild(renderer.domElement);
-    const pmrem = new THREE.PMREMGenerator(renderer);
-    const env = pmrem.fromScene(new RoomEnvironment(), 0.5).texture;
-    scene.environment = env; // reflections for PBR materials
-    // scene.background = env; // uncomment if you want a visible studio backdrop
+    // Build or reuse environment
+    let pmrem: THREE.PMREMGenerator | null = null;
+    if (!__ENV_TEXTURE__) {
+      pmrem = new THREE.PMREMGenerator(renderer);
+      __ENV_TEXTURE__ = pmrem.fromScene(new RoomEnvironment(), 0.5).texture;
+    }
+    scene.environment = __ENV_TEXTURE__!;
 
-    // Lights (still help define form even with env map)
+    // Lights
     const key = new THREE.DirectionalLight(0xffffff, 0.9);
     key.position.set(5, 6, 4);
     scene.add(key);
-
     const fill = new THREE.AmbientLight(0xffffff, 0.35);
     scene.add(fill);
 
-    // Clipping plane: facing camera along +Z viewing direction
-    // Normal (0, 0, -1) points toward the camera placed in +Z.
+    // Clipping plane
     const clipPlane = new THREE.Plane(new THREE.Vector3(0, 0, -1), 0);
-    // Increase constant => clip closer to camera; decrease => deeper into scene.
 
-    // Metallic aluminum material
+    // Material — metallic aluminum
     const material = new THREE.MeshPhysicalMaterial({
-      color: 0xd9d9d9, // light grey base
-      metalness: 1.0, // full metal (env map gives reflections)
-      roughness: 0.28, // slight blur = brushed vibe
+      color: 0xd9d9d9,
+      metalness: 1.0,
+      roughness: 0.28,
       reflectivity: 0.95,
       clearcoat: 0.7,
       clearcoatRoughness: 0.12,
-      clippingPlanes: [clipPlane], // <— enable the slice
-      // clipShadows: false, // irrelevant with shadows off
+      clippingPlanes: [clipPlane],
     });
 
     // Geometry
@@ -74,69 +76,56 @@ const ThreeBackground: React.FC = () => {
     object.rotation.z = Math.PI; // 180°
     scene.add(object);
 
-    // Optional “floor” — inert without shadows; keep if you later enable them
-    // const floor = new THREE.Mesh(
-    //   new THREE.PlaneGeometry(20, 20),
-    //   new THREE.ShadowMaterial({ opacity: 0.2 })
-    // );
-    // floor.rotation.x = -Math.PI / 2;
-    // floor.position.y = -1.6;
-    // floor.receiveShadow = true;
-    // scene.add(floor);
-
-    // Animation — slower spin
-    const animate = () => {
-      object.rotation.y += 0.0012; // slower than before
-      renderer.render(scene, camera);
-      animationRef.current = requestAnimationFrame(animate);
-    };
-    animate();
-
-    // Resize
-    const handleResize = () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
+    // Size/resize to container (full screen by default)
+    const resize = () => {
+      const w = wrapRef.current!.clientWidth;
+      const h = wrapRef.current!.clientHeight;
+      camera.aspect = w / h;
       camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setSize(w, h, false); // don't force canvas CSS size
     };
-    window.addEventListener("resize", handleResize);
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(wrapRef.current!);
 
-    // Debug: nudge the slice depth with [ and ]
+    // Animation — always on (ignores prefers-reduced-motion per your request)
+    const clock = new THREE.Clock();
+    const BASE_SPEED = 0.1; // degrees/sec-ish (scaled by delta)
+
+    const loop = () => {
+      const dt = clock.getDelta();
+      object.rotation.y += ((BASE_SPEED * Math.PI) / 180) * (dt * 60); // normalize to ~60fps feel
+      renderer.render(scene, camera);
+      rafRef.current = requestAnimationFrame(loop);
+    };
+    rafRef.current = requestAnimationFrame(loop);
+
+    // Keyboard nudges for the slice depth
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "]") clipPlane.constant += 0.05;
       if (e.key === "[") clipPlane.constant -= 0.05;
     };
     window.addEventListener("keydown", onKey);
 
-    // Cleanup
     return () => {
-      if (animationRef.current) cancelAnimationFrame(animationRef.current);
-      window.removeEventListener("resize", handleResize);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
       window.removeEventListener("keydown", onKey);
-
-      // Remove canvas
-      if (mountRef.current?.contains(renderer.domElement)) {
-        mountRef.current.removeChild(renderer.domElement);
-      }
-
-      // Dispose
+      ro.disconnect();
       geometry.dispose();
       material.dispose();
-      pmrem.dispose();
-      env.dispose?.(); // in newer three it’s fine to skip; safe check
-
       renderer.dispose();
+      pmrem?.dispose(); // only if we created it this mount
     };
-  }, [isMounted]);
-
-  if (!isMounted) return null;
+  }, []);
 
   return (
     <div
-      ref={mountRef}
+      ref={wrapRef}
       className="fixed inset-0 pointer-events-none"
-      style={{ background: "transparent", zIndex: -1 }}
-    />
+      style={{ zIndex: -1, background: "transparent" }}
+    >
+      {/* full-viewport canvas */}
+      <canvas ref={canvasRef} className="w-full h-full block" />
+    </div>
   );
-};
-
-export default ThreeBackground;
+}
