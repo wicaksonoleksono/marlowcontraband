@@ -4,8 +4,169 @@ import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 
-// global cache so PMREM/env is built once per session
+// cache env between mounts
 let __ENV_TEXTURE__: THREE.Texture | null = null;
+
+/** --- p5 math, verbatim (ported) --- */
+function vShape(A: number, r: number, a: number, b: number, c: number) {
+  return A * Math.exp(-b * Math.pow(Math.abs(r), c)) * Math.pow(Math.abs(r), a);
+}
+function bumpiness(A: number, r: number, f: number, angleDeg: number) {
+  return 1 + A * (r * r) * Math.sin((f * angleDeg * Math.PI) / 180);
+}
+
+/** Build the exact p5 surface as a BufferGeometry (with wrap-around on phi) */
+function buildFlowerGeometryFromP5(
+  params: {
+    pNum: number; // petalNum
+    fD: number; // diameter
+    pLen: number; // petal length
+    pSharp: number; // petal sharpness
+    fHeight: number; // flower height
+    curve1: number; // curvature1
+    curve2: number; // curvature2
+    b: number; // bump
+    bNum: number; // bumpNum
+  },
+  rows = 60,
+  cols = 120
+) {
+  const { pNum, fD, pLen, pSharp, fHeight, curve1, curve2, b, bNum } = params;
+
+  const positions: number[] = [];
+  const indices: number[] = [];
+
+  for (let theta = 0; theta < rows; theta++) {
+    for (let phi = 0; phi < cols; phi++) {
+      const phiDeg = (phi * 360) / cols;
+
+      const r =
+        (pLen *
+          Math.pow(
+            Math.abs(Math.sin(((pNum / 2) * phiDeg * Math.PI) / 180)),
+            pSharp
+          ) +
+          fD) *
+        (theta / rows);
+
+      const x = r * Math.cos((phiDeg * Math.PI) / 180);
+      const y = r * Math.sin((phiDeg * Math.PI) / 180);
+      const z =
+        vShape(fHeight, r / 100, curve1, curve2, 1.5) -
+        200 +
+        bumpiness(b, r / 100, bNum, phiDeg);
+
+      positions.push(x / 100, y / 100, z / 100);
+    }
+  }
+
+  for (let theta = 0; theta < rows - 1; theta++) {
+    for (let phi = 0; phi < cols; phi++) {
+      const i00 = theta * cols + phi;
+      const i01 = theta * cols + ((phi + 1) % cols);
+      const i10 = (theta + 1) * cols + phi;
+      const i11 = (theta + 1) * cols + ((phi + 1) % cols);
+
+      indices.push(i00, i10, i01);
+      indices.push(i01, i10, i11);
+    }
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+  return geo;
+}
+
+/** Presets */
+type SpecKey = "rose" | "dahlia" | "lotus" | "camellia" | "zinnia";
+const SPECIES: Record<
+  SpecKey,
+  {
+    pNum: number;
+    fD: number;
+    pLen: number;
+    pSharp: number;
+    fHeight: number;
+    curve1: number;
+    curve2: number;
+    b: number;
+    bNum: number;
+  }
+> = {
+  rose: {
+    pNum: 6,
+    fD: 200,
+    pLen: 60,
+    pSharp: 0.6,
+    fHeight: 300,
+    curve1: 0.8,
+    curve2: 0.2,
+    b: 2.5,
+    bNum: 10,
+  },
+  dahlia: {
+    pNum: 14,
+    fD: 180,
+    pLen: 50,
+    pSharp: 0.8,
+    fHeight: 280,
+    curve1: 0.95,
+    curve2: 0.22,
+    b: 2.3,
+    bNum: 12,
+  },
+  lotus: {
+    pNum: 8,
+    fD: 170,
+    pLen: 90,
+    pSharp: 0.4,
+    fHeight: 240,
+    curve1: 0.6,
+    curve2: 0.16,
+    b: 1.7,
+    bNum: 8,
+  },
+  camellia: {
+    pNum: 7,
+    fD: 190,
+    pLen: 65,
+    pSharp: 0.5,
+    fHeight: 260,
+    curve1: 0.7,
+    curve2: 0.25,
+    b: 1.9,
+    bNum: 9,
+  },
+  zinnia: {
+    pNum: 10,
+    fD: 190,
+    pLen: 55,
+    pSharp: 0.35,
+    fHeight: 260,
+    curve1: 0.9,
+    curve2: 0.18,
+    b: 1.8,
+    bNum: 11,
+  },
+};
+
+/** small randomizer around a preset for natural variation */
+function jitterParams(p: (typeof SPECIES)[SpecKey]) {
+  const j = (v: number, rel = 0.08) => v + (Math.random() * 2 - 1) * v * rel;
+  return {
+    pNum: Math.max(3, Math.round(j(p.pNum, 0.15))),
+    fD: j(p.fD, 0.12),
+    pLen: j(p.pLen, 0.12),
+    pSharp: Math.max(0.1, j(p.pSharp, 0.25)),
+    fHeight: j(p.fHeight, 0.15),
+    curve1: Math.max(0.01, j(p.curve1, 0.2)),
+    curve2: Math.max(0.01, j(p.curve2, 0.2)),
+    b: Math.max(0, j(p.b, 0.25)),
+    bNum: Math.max(0, Math.round(j(p.bNum, 0.2))),
+  };
+}
 
 export default function ThreeBackgroundCanvas() {
   const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -15,32 +176,30 @@ export default function ThreeBackgroundCanvas() {
   useEffect(() => {
     if (!wrapRef.current || !canvasRef.current) return;
 
-    // Scene
+    // Scene & camera (slightly wider FOV, further back)
     const scene = new THREE.Scene();
-
-    // Camera (same framing as your last good state)
-    const camera = new THREE.PerspectiveCamera(20, 1, 0.1, 200);
-    camera.position.set(-1.8, 1.9, 6.2);
+    const camera = new THREE.PerspectiveCamera(26, 1, 0.1, 300);
+    camera.position.set(-1.8, 1.9, 50.0);
     camera.lookAt(0, 0, 0);
 
-    // Renderer bound to our <canvas>
+    // Renderer
     const renderer = new THREE.WebGLRenderer({
-      canvas: canvasRef.current,
+      canvas: canvasRef.current!,
       antialias: true,
       alpha: true,
       powerPreference: "low-power",
-      stencil: false,
-      depth: true,
       premultipliedAlpha: true,
-      preserveDrawingBuffer: false,
     });
     const DPR = Math.min(window.devicePixelRatio || 1, 1.25);
     renderer.setPixelRatio(DPR);
+    renderer.setSize(
+      wrapRef.current.clientWidth,
+      wrapRef.current.clientHeight,
+      false
+    );
     renderer.setClearColor(0x000000, 0);
-    renderer.localClippingEnabled = true;
-    renderer.shadowMap.enabled = false;
 
-    // Build or reuse environment
+    // Environment (cached)
     let pmrem: THREE.PMREMGenerator | null = null;
     if (!__ENV_TEXTURE__) {
       pmrem = new THREE.PMREMGenerator(renderer);
@@ -52,69 +211,116 @@ export default function ThreeBackgroundCanvas() {
     const key = new THREE.DirectionalLight(0xffffff, 0.9);
     key.position.set(5, 6, 4);
     scene.add(key);
+
     const fill = new THREE.AmbientLight(0xffffff, 0.35);
     scene.add(fill);
 
-    // Clipping plane
-    const clipPlane = new THREE.Plane(new THREE.Vector3(0, 0, -1), 0);
-
-    // Material — metallic aluminum
-    const material = new THREE.MeshPhysicalMaterial({
+    // Metallic “aluminum” material
+    const metal = new THREE.MeshPhysicalMaterial({
       color: 0xd9d9d9,
       metalness: 1.0,
       roughness: 0.28,
       reflectivity: 0.95,
       clearcoat: 0.7,
       clearcoatRoughness: 0.12,
-      clippingPlanes: [clipPlane],
+      envMapIntensity: 1.0,
+      side: THREE.DoubleSide,
     });
 
-    // Geometry
-    const geometry = new THREE.TorusKnotGeometry(1.0, 0.2, 150, 32);
-    const object = new THREE.Mesh(geometry, material);
-    object.rotation.x = Math.PI; // 180°
-    object.rotation.z = Math.PI; // 180°
-    scene.add(object);
+    // Helpers
+    const rnd = (a: number, b: number) => a + Math.random() * (b - a);
+    const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
 
-    // Size/resize to container (full screen by default)
+    // Scatter config — wider spread + deeper base
+    const MAX_FLOWERS = 8;
+    const speciesKeys = Object.keys(SPECIES) as SpecKey[];
+    const count = Math.floor(rnd(4, MAX_FLOWERS + 1)); // 4..8
+    const SPREAD = new THREE.Vector3(60, 60, 60); // wider scatter on all axes
+    const BASE_Z = -12.0; // push cluster back
+
+    const flowers: { obj: THREE.Mesh; axis: THREE.Vector3; speed: number }[] =
+      [];
+
+    for (let i = 0; i < count; i++) {
+      const base = SPECIES[pick(speciesKeys)];
+      const params = jitterParams(base);
+
+      const geo = buildFlowerGeometryFromP5(params, 60, 120);
+      const mesh = new THREE.Mesh(geo, metal.clone());
+
+      // Position: scatter plus a little per-mesh depth jitter
+      mesh.position.set(
+        rnd(-SPREAD.x / 2, SPREAD.x / 2),
+        rnd(-SPREAD.y / 2, SPREAD.y / 2),
+        BASE_Z + rnd(-SPREAD.z / 2, SPREAD.z / 2) + rnd(-2.0, 2.0)
+      );
+
+      // Orientation
+      mesh.rotation.set(
+        rnd(0, Math.PI * 2),
+        rnd(0, Math.PI * 2),
+        rnd(0, Math.PI * 2)
+      );
+
+      // Slightly smaller range -> feels further away
+      mesh.scale.setScalar(rnd(0.8, 1.5));
+
+      scene.add(mesh);
+
+      // Slow, subtle spin
+      const axis =
+        Math.random() < 0.5
+          ? new THREE.Vector3(1, 0, 0)
+          : new THREE.Vector3(0, 0, 1);
+      const speed = rnd(0.08, 0.22); // radians/sec
+      flowers.push({ obj: mesh, axis, speed });
+    }
+
+    // Resize
     const resize = () => {
       const w = wrapRef.current!.clientWidth;
       const h = wrapRef.current!.clientHeight;
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
-      renderer.setSize(w, h, false); // don't force canvas CSS size
+      renderer.setSize(w, h, false);
     };
-    resize();
     const ro = new ResizeObserver(resize);
-    ro.observe(wrapRef.current!);
+    ro.observe(wrapRef.current);
 
-    // Animation — always on (ignores prefers-reduced-motion per your request)
+    // Animate
     const clock = new THREE.Clock();
-    const BASE_SPEED = 0.1; // degrees/sec-ish (scaled by delta)
-
+    const q = new THREE.Quaternion();
     const loop = () => {
       const dt = clock.getDelta();
-      object.rotation.y += ((BASE_SPEED * Math.PI) / 180) * (dt * 60); // normalize to ~60fps feel
+      flowers.forEach(({ obj, axis, speed }) => {
+        q.setFromAxisAngle(axis, speed * dt);
+        obj.quaternion.multiply(q);
+      });
       renderer.render(scene, camera);
       rafRef.current = requestAnimationFrame(loop);
     };
     rafRef.current = requestAnimationFrame(loop);
 
-    // Keyboard nudges for the slice depth
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "]") clipPlane.constant += 0.05;
-      if (e.key === "[") clipPlane.constant -= 0.05;
-    };
-    window.addEventListener("keydown", onKey);
-
+    // Cleanup
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      window.removeEventListener("keydown", onKey);
       ro.disconnect();
-      geometry.dispose();
-      material.dispose();
+      scene.traverse((o) => {
+        const m = (o as THREE.Mesh).material as
+          | THREE.Material
+          | THREE.Material[]
+          | undefined;
+        const g = (o as THREE.Mesh).geometry as
+          | THREE.BufferGeometry
+          | undefined;
+        if (g) g.dispose();
+        if (m) {
+          if (Array.isArray(m)) m.forEach((mm) => mm.dispose());
+          else m.dispose();
+        }
+      });
       renderer.dispose();
-      pmrem?.dispose(); // only if we created it this mount
+      pmrem?.dispose();
     };
   }, []);
 
@@ -124,7 +330,6 @@ export default function ThreeBackgroundCanvas() {
       className="fixed inset-0 pointer-events-none"
       style={{ zIndex: -1, background: "transparent" }}
     >
-      {/* full-viewport canvas */}
       <canvas ref={canvasRef} className="w-full h-full block" />
     </div>
   );

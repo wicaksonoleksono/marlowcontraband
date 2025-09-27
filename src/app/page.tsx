@@ -16,7 +16,7 @@ export default function RootPage() {
     // Wrap everything in the LenisProvider
     <LenisProvider>
       <div>
-        {/* <ThreeBackground /> */}
+        <ThreeBackground />
         <Header isScrollMode={true} />
         {/* scrollTo logic will be handled differently or removed */}
         <div className="w-[65vw] mx-auto pt-20 ">

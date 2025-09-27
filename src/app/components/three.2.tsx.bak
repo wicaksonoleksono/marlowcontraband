@@ -1,0 +1,383 @@
+"use client";
+
+import React, { useEffect, useRef } from "react";
+import * as THREE from "three";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
+
+// global cache so PMREM/env is built once per session
+let __ENV_TEXTURE__: THREE.Texture | null = null;
+type FlowerProfile = "pointed" | "rounded" | "oval" | "flat";
+type FlowerSpec = {
+  rings: number;
+  petalsFirstRing: number;
+  petalGrow: number;
+  width: number;
+  length: number;
+  curl: number;
+  tipTwist: number;
+  ringStep: number;
+  tiltIn: number;
+  jitter: number;
+  profile: FlowerProfile; // NEW
+  tubeRoll: number; // NEW (0..1) how “cupped/tubular” the petal is
+};
+
+const SPECIES: Record<
+  "rose" | "dahlia" | "lotus" | "camellia" | "zinnia",
+  FlowerSpec
+> = {
+  // Rose: pointed, tight curl and strong tip twist
+  rose: {
+    rings: 6,
+    petalsFirstRing: 6,
+    petalGrow: 1.15,
+    width: 0.34,
+    length: 0.95,
+    curl: 0.75,
+    tipTwist: 0.9,
+    ringStep: 0.17,
+    tiltIn: 0.5,
+    jitter: 0.16,
+    profile: "pointed",
+    tubeRoll: 0.25,
+  },
+  // Dahlia: many rings, strongly cupped/tubular petals, moderate point
+  dahlia: {
+    rings: 8,
+    petalsFirstRing: 10,
+    petalGrow: 1.18,
+    width: 0.26,
+    length: 0.78,
+    curl: 0.85,
+    tipTwist: 0.55,
+    ringStep: 0.14,
+    tiltIn: 0.32,
+    jitter: 0.22,
+    profile: "rounded",
+    tubeRoll: 0.8,
+  },
+  // Lotus: long oval, few rings, gentle curl, open
+  lotus: {
+    rings: 5,
+    petalsFirstRing: 8,
+    petalGrow: 1.0,
+    width: 0.44,
+    length: 1.25,
+    curl: 0.32,
+    tipTwist: 0.2,
+    ringStep: 0.22,
+    tiltIn: 0.2,
+    jitter: 0.12,
+    profile: "oval",
+    tubeRoll: 0.15,
+  },
+  // Camellia: smooth rounded petals, medium curl, layered
+  camellia: {
+    rings: 6,
+    petalsFirstRing: 7,
+    petalGrow: 1.12,
+    width: 0.36,
+    length: 0.92,
+    curl: 0.55,
+    tipTwist: 0.45,
+    ringStep: 0.18,
+    tiltIn: 0.35,
+    jitter: 0.16,
+    profile: "rounded",
+    tubeRoll: 0.35,
+  },
+  // Zinnia: flatter petals, lots per ring, shallow curl
+  zinnia: {
+    rings: 5,
+    petalsFirstRing: 12,
+    petalGrow: 1.0,
+    width: 0.3,
+    length: 0.72,
+    curl: 0.4,
+    tipTwist: 0.25,
+    ringStep: 0.15,
+    tiltIn: 0.25,
+    jitter: 0.2,
+    profile: "flat",
+    tubeRoll: 0.2,
+  },
+};
+
+type SpinState = {
+  axis: THREE.Vector3; // x or z
+  speed: number; // radians/sec
+};
+
+// Build a curled petal by warping a plane
+function buildPetalGeometry(opts: {
+  width: number;
+  length: number;
+  curl: number;
+  tipTwist: number;
+  segW?: number;
+  segL?: number;
+}) {
+  const { width, length, curl, tipTwist, segW = 10, segL = 22 } = opts;
+  const geo = new THREE.PlaneGeometry(width, length, segW, segL);
+  geo.rotateX(-Math.PI / 2); // length points +Z
+
+  const pos = geo.attributes.position as THREE.BufferAttribute;
+  const v = new THREE.Vector3();
+
+  for (let i = 0; i < pos.count; i++) {
+    v.fromBufferAttribute(pos, i);
+    const t = (v.z + length / 2) / length; // 0..1 base->tip
+    const xNorm = v.x / (width / 2); // -1..1 edge->edge
+
+    // base pinch → fuller tip
+    const pinch = THREE.MathUtils.lerp(0.35, 1.0, t);
+    v.x *= pinch;
+
+    // upward curl, stronger at centerline
+    const centerBias = 1 - Math.abs(xNorm);
+    v.y += curl * centerBias * Math.pow(t, 1.2);
+
+    // twist near tip
+    const twistAngle = tipTwist * (Math.PI / 4) * Math.pow(t, 1.5) * xNorm;
+    const c = Math.cos(twistAngle),
+      s = Math.sin(twistAngle);
+    const x0 = v.x,
+      y0 = v.y;
+    v.x = x0 * c - y0 * s;
+    v.y = x0 * s + y0 * c;
+
+    pos.setXYZ(i, v.x, v.y, v.z);
+  }
+  geo.computeVertexNormals();
+  return geo;
+}
+
+// Assemble a flower (rings of petals + a small center)
+function buildFlower(spec: FlowerSpec, aluminum: THREE.MeshPhysicalMaterial) {
+  const group = new THREE.Group();
+
+  const petalGeo = buildPetalGeometry({
+    width: spec.width,
+    length: spec.length,
+    curl: spec.curl,
+    tipTwist: spec.tipTwist,
+  });
+
+  // Slightly different roughness on the core so highlights pop
+  const coreMat = aluminum.clone();
+  coreMat.roughness = Math.min(0.6, aluminum.roughness + 0.15);
+  coreMat.metalness = 0.95;
+  const core = new THREE.Mesh(
+    new THREE.SphereGeometry(spec.width * 0.25, 16, 12),
+    coreMat
+  );
+  core.position.y = 0.03;
+  group.add(core);
+
+  let petalsInRing = spec.petalsFirstRing;
+  for (let r = 0; r < spec.rings; r++) {
+    const ringRadius = spec.ringStep * (r + 1);
+    const ringTilt = THREE.MathUtils.lerp(
+      0.7,
+      spec.tiltIn,
+      r / Math.max(1, spec.rings - 1)
+    );
+    const jitterYaw = spec.jitter * 0.5;
+
+    for (let i = 0; i < petalsInRing; i++) {
+      const angle = (i / petalsInRing) * Math.PI * 2;
+      const mat = aluminum.clone();
+      const petal = new THREE.Mesh(petalGeo, mat);
+
+      // position on ring
+      petal.position.set(
+        Math.cos(angle) * ringRadius,
+        0,
+        Math.sin(angle) * ringRadius
+      );
+      // aim toward center, then tilt inward
+      petal.lookAt(0, 0, 0);
+      petal.rotateX(ringTilt);
+      // tiny yaw variation breaks perfect symmetry
+      petal.rotateY(THREE.MathUtils.randFloatSpread(jitterYaw));
+
+      const s =
+        0.9 +
+        (r / spec.rings) * 0.35 +
+        THREE.MathUtils.randFloatSpread(spec.jitter * 0.2);
+      petal.scale.setScalar(s);
+
+      // pull slightly toward the core so bases overlap nicely
+      const dir = new THREE.Vector3();
+      petal.getWorldDirection(dir);
+      petal.position.addScaledVector(dir.negate(), 0.02);
+
+      group.add(petal);
+    }
+    petalsInRing = Math.max(6, Math.round(petalsInRing * spec.petalGrow));
+  }
+
+  // compact a touch
+  group.position.y -= 0.2;
+  return group;
+}
+
+export default function ThreeBackgroundCanvas() {
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const rafRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!wrapRef.current || !canvasRef.current) return;
+
+    // Scene
+    const scene = new THREE.Scene();
+
+    // Camera
+    const camera = new THREE.PerspectiveCamera(20, 1, 0.1, 200);
+    camera.position.set(-1.8, 1.9, 6.2);
+    camera.lookAt(0, 0, 0);
+
+    // Renderer
+    const renderer = new THREE.WebGLRenderer({
+      canvas: canvasRef.current!,
+      antialias: true,
+      alpha: true,
+      powerPreference: "low-power",
+      stencil: false,
+      depth: true,
+      premultipliedAlpha: true,
+      preserveDrawingBuffer: false,
+    });
+    const DPR = Math.min(window.devicePixelRatio || 1, 1.25);
+    renderer.setPixelRatio(DPR);
+    renderer.setClearColor(0x000000, 0);
+    renderer.localClippingEnabled = false;
+    renderer.shadowMap.enabled = false;
+
+    // Env (reused)
+    let pmrem: THREE.PMREMGenerator | null = null;
+    if (!__ENV_TEXTURE__) {
+      pmrem = new THREE.PMREMGenerator(renderer);
+      __ENV_TEXTURE__ = pmrem.fromScene(new RoomEnvironment(), 0.5).texture;
+    }
+    scene.environment = __ENV_TEXTURE__!;
+
+    // Lights
+    const key = new THREE.DirectionalLight(0xffffff, 0.9);
+    key.position.set(5, 6, 4);
+    scene.add(key);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+
+    // Metallic aluminum
+    const aluminum = new THREE.MeshPhysicalMaterial({
+      color: 0xd9d9d9,
+      metalness: 1.0,
+      roughness: 0.28,
+      reflectivity: 0.95,
+      clearcoat: 0.7,
+      clearcoatRoughness: 0.12,
+      envMapIntensity: 1.0,
+    });
+
+    // Helpers
+    const rnd = (a: number, b: number) => a + Math.random() * (b - a);
+    const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
+
+    // Build up to 8 scattered flowers (groups), each spins around x or z
+    const MAX_FLOWERS = 8;
+    const speciesPool: (keyof typeof SPECIES)[] = [
+      "rose",
+      "dahlia",
+      "lotus",
+      "camellia",
+      "zinnia",
+    ];
+    const count = Math.floor(rnd(4, MAX_FLOWERS + 1)); // 4..8
+
+    const SPREAD = new THREE.Vector3(8, 5, 6);
+    const flowers: { group: THREE.Group; spin: SpinState }[] = [];
+
+    for (let i = 0; i < count; i++) {
+      const name = pick(speciesPool);
+      const group = buildFlower(SPECIES[name], aluminum);
+
+      group.position.set(
+        rnd(-SPREAD.x / 2, SPREAD.x / 2),
+        rnd(-SPREAD.y / 2, SPREAD.y / 2),
+        rnd(-SPREAD.z / 2, SPREAD.z / 2)
+      );
+      group.rotation.set(
+        rnd(0, Math.PI * 2),
+        rnd(0, Math.PI * 2),
+        rnd(0, Math.PI * 2)
+      );
+      group.scale.setScalar(rnd(0.1, 0.8));
+
+      scene.add(group);
+
+      const axis =
+        Math.random() < 0.5
+          ? new THREE.Vector3(1, 0, 0)
+          : new THREE.Vector3(0, 0, 1);
+      const speed = rnd(0.12, 0.35);
+      flowers.push({ group, spin: { axis, speed } });
+    }
+
+    // Resize
+    const resize = () => {
+      const w = wrapRef.current!.clientWidth;
+      const h = wrapRef.current!.clientHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h, false);
+    };
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(wrapRef.current!);
+
+    // Animate
+    const clock = new THREE.Clock();
+    const q = new THREE.Quaternion();
+
+    const loop = () => {
+      const dt = clock.getDelta();
+
+      for (const { group, spin } of flowers) {
+        q.setFromAxisAngle(spin.axis, spin.speed * dt);
+        group.quaternion.multiply(q);
+      }
+
+      renderer.render(scene, camera);
+      rafRef.current = requestAnimationFrame(loop);
+    };
+    rafRef.current = requestAnimationFrame(loop);
+
+    // Cleanup
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      ro.disconnect();
+      scene.traverse((obj) => {
+        const mesh = obj as THREE.Mesh;
+        if (mesh.geometry) mesh.geometry.dispose?.();
+        const m = mesh.material as
+          | THREE.Material
+          | THREE.Material[]
+          | undefined;
+        if (m) Array.isArray(m) ? m.forEach((mm) => mm.dispose()) : m.dispose();
+      });
+      renderer.dispose();
+      pmrem?.dispose();
+    };
+  }, []);
+
+  return (
+    <div
+      ref={wrapRef}
+      className="fixed inset-0 pointer-events-none"
+      style={{ zIndex: -1, background: "transparent" }}
+    >
+      <canvas ref={canvasRef} className="w-full h-full block" />
+    </div>
+  );
+}
