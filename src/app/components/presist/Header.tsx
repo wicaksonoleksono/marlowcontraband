@@ -133,7 +133,7 @@ const Header: React.FC<HeaderProps> = ({ isScrollMode = false }) => {
               href={isScrollMode ? page.anchor : page.route}
               className={`font-bold transition-colors whitespace-nowrap px-3 py-2 relative ${
                 isScrollMode && activeSection === page.id
-                  ? "text-[var(--color-primary)] border-1 border-[var(--color-primary)]"
+                  ? " border-1 border-[var(--color-primary)]"
                   : "hover:text-[var(--color-primary)] rounded-md"
               }`}
               data-section={page.id}

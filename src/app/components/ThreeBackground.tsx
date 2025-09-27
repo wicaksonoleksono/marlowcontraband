@@ -19,7 +19,7 @@ export default function ThreeBackgroundCanvas() {
     const scene = new THREE.Scene();
 
     // Camera (same framing as your last good state)
-    const camera = new THREE.PerspectiveCamera(15, 1, 0.1, 200);
+    const camera = new THREE.PerspectiveCamera(20, 1, 0.1, 200);
     camera.position.set(-1.8, 1.9, 6.2);
     camera.lookAt(0, 0, 0);
 
