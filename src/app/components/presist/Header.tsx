@@ -123,7 +123,7 @@ const Header: React.FC<HeaderProps> = ({ isScrollMode = false }) => {
       <div className="relative flex items-center justify-between px-6 py-4">
         <Link href="/">
           <h1 className="text-xl font-bold hover:text-[var(--color-primary)] transition-colors cursor-pointer">
-            Marlow's backyard
+            Party Animals
           </h1>
         </Link>
         <nav className="flex gap-6 overflow-x-auto" id="navbar-list">
