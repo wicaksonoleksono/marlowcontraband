@@ -4,8 +4,8 @@ import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 
 export default function EdgeAwareColorFlowers({
-  lambdaPerSec = 0.3, // much slower auto-spawn rate
-  bg = 0xfffcf1,
+  lambdaPerSec = 0.9, // average spawns per second
+  bg = 0xfffcf1, // paper background
 }: {
   lambdaPerSec?: number;
   bg?: number;
@@ -48,13 +48,18 @@ export default function EdgeAwareColorFlowers({
       void main(){ vUv = uv; gl_Position = vec4(position, 1.0); }
     `;
 
-    // === IMPROVED VERSION (matching original codepen behavior) ===
+    // === COLORFUL palette (matches your reference style) ===
+    // Key changes vs metallic version:
+    // - stemColor uses a greenish tint relative to background
+    // - flower "ink" color uses time-varying hue-like sin waves (no desaturation)
+    // - stronger ring whites and center contrast
     const frag = `
       precision highp float;
       varying vec2 vUv;
 
       uniform float u_ratio;
-      uniform vec2  u_point;           // bloom center (click point)
+      uniform vec2  u_point;           // bloom center (x, y with y flipped)
+      uniform vec2  u_origin;          // nearest-edge origin (same coords as u_point)
       uniform float u_time;
       uniform float u_stop_time;
       uniform vec3  u_stop_randomizer;
@@ -86,112 +91,109 @@ export default function EdgeAwareColorFlowers({
         return 130.0*dot(m,g);
       }
 
-      float get_dot_shape(vec2 dist, float radius_max, float radius_line) {
-        return 1. - smoothstep(radius_line * radius_max, radius_max, dot(dist, dist) * 4.0);
+      float dotShape(vec2 d,float rMax,float rLine){
+        return 1.0 - smoothstep(rLine*rMax, rMax, dot(d,d)*4.0);
       }
 
-      float get_stem_shape(vec2 _cursor, vec2 _uv, float _t, float _size, float _flowery, vec2 _rand) {
-        float stroke_width = .01;
-        float noise_power = .2;
+      float stem(vec2 cur, vec2 uv, float t, float size, float flowery, vec2 rnd){
+        float stroke=.01; float nPow=.2;
+        float noiseX = nPow*(1.0+(1.0-flowery))*snoise(3.0*uv*(rnd-0.5));
+        noiseX *= pow(dot(cur.y,cur.y), .3*flowery);
+        noiseX *= pow(dot(uv.y,uv.y), .3);
+        cur.x += noiseX;
 
-        float cursor_horizontal_noise = noise_power * (1. + (1. - _flowery)) * snoise(3. * _uv * (_rand - .5));
+        cur.y *= (1.0-((1.0-flowery)*.7));
+        cur.y += ((1.0-flowery)*.7*rnd.x);
 
-        // noise to zero on flower center
-        cursor_horizontal_noise *= pow(dot(_cursor.y, _cursor.y), .3 * _flowery);
-        cursor_horizontal_noise *= pow(dot(_uv.y, _uv.y), .3);// noise to be zero at bottom
-        _cursor.x += cursor_horizontal_noise;
+        stroke = (1.0-flowery)*.9*pow(dot(uv.y, cur.x), 1.0) + flowery*.03;
+        stroke -= .02;
 
-        // non-flowers shorter
-        _cursor.y *= (1. - ((1. - _flowery) * .7));
-        _cursor.y += ((1. - _flowery) * .7 * _rand.x);
+        float left = smoothstep(-stroke, 0.0, cur.x);
+        float right= smoothstep( stroke, 0.0, cur.x);
+        float s = left*right;
 
-        // non-flowers wider
-        stroke_width = (1. - _flowery) * .9 * pow(dot(_uv.y, _cursor.x), 1.) + _flowery * .03;
-        stroke_width -= .02;
-
-        float left = smoothstep(-stroke_width, 0., _cursor.x);
-        float right = smoothstep(stroke_width, 0., _cursor.x);
-        float stem_shape = left * right;
-
-        float stem_top_mask = smoothstep(_cursor.y - .1, _cursor.y, min(-.1, _t - 1.));
-
-        // top ovary
-        stem_shape *= stem_top_mask;
-        stem_shape += .5 * get_dot_shape(_cursor + vec2(0., .02), .15 * _size, .5);
-        stem_shape *= stem_top_mask;
-
-        return stem_shape;
+        float topMask = smoothstep(cur.y-.1, cur.y, min(-.1, t-1.0));
+        s *= topMask;
+        s += .5*dotShape(cur+vec2(0.0, .02), .15*size, .5);
+        s *= topMask;
+        return s;
       }
 
-      void main() {
+      void main(){
         float speed = 1.3;
         float t = speed * u_stop_time;
 
         vec2 uv = vUv;
-        uv += 0.00007 * snoise(vUv * 6.0 + vec2(0.0, 15.0 * cos(0.1 * u_time)));
+        uv += 0.00007*snoise(vUv*6.0 + vec2(0.0, 15.0*cos(0.1*u_time)));
         uv.y += 0.00005;
 
-        vec3 color = texture2D(u_texture, uv).xyz;
-        color += 0.0015 * u_background_color;
+        vec3 color = texture2D(u_texture, uv).rgb;
+        color += 0.0015*u_background_color;
 
-        vec2 cursor = uv - u_point.xy;
-        cursor.x *= u_ratio;
+        // timings
+        float growDur   = 0.6;
+        float bloomDur  = 0.3 * u_stop_randomizer.y;
+        float baseR     = .02 + .2*u_stop_randomizer.y;
+        float openFlag  = step(.1, baseR);
 
-        float base_radius = .01 + .08 * u_stop_randomizer.y; // much smaller scale
-        float grow_duration = .6;
-        float grow_speed = 2. * speed;
-        float bloom_duration = .3 * u_stop_randomizer.y;
+        // head moves from nearest edge origin -> bloom center
+        float k   = clamp(t / growDur, 0.0, 1.0);
+        vec2 head = mix(u_origin, u_point, k);
 
-        float is_open = step(.05, base_radius); // smaller threshold
+        // coords around current head
+        vec2 cur = uv - head;
+        cur.x *= u_ratio;
 
-        if (t < grow_duration) {
-          vec3 stem_color = u_background_color - normalize(vec3(.3, .5, .1));
-          float stem_shape = get_stem_shape(cursor, uv, grow_speed * t, base_radius, 1., u_stop_randomizer.xy);
-          stem_shape += get_stem_shape(cursor, uv, grow_speed * t, 0., 0., u_stop_randomizer.yz);
-          stem_shape += get_stem_shape(cursor, uv, grow_speed * t, 0., 0., u_stop_randomizer.zy);
-          vec3 stem = stem_shape * stem_color;
-          color -= stem;
+        // ===== STEM PHASE (GREENISH, like original) =====
+        if(t < growDur){
+          // background minus a greenish tint
+          vec3 stemColor = u_background_color - normalize(vec3(.3, .55, .15));
+          float s = stem(cur, uv, 2.0*t, baseR, 1.0, u_stop_randomizer.xy);
+          s +=     stem(cur, uv, 2.0*t, 0.0, 0.0, u_stop_randomizer.yz);
+          s +=     stem(cur, uv, 2.0*t, 0.0, 0.0, u_stop_randomizer.zy);
+          color -= clamp(s,0.0,1.0) * stemColor;
         }
 
-        if (t < grow_duration + is_open * bloom_duration) {
-          float blooming_time = max(0., pow(1.1 * t, 2.) - .05);
-          float radius = base_radius * blooming_time;
+        // ===== BLOOM PHASE (COLORFUL, time-varying) =====
+        if(t < growDur + openFlag * bloomDur){
+          float bt = max(0.0, pow(1.1*t, 2.0)-.05);
+          float radius = baseR * bt;
 
-          vec2 noisy_cursor = vUv - u_point.xy;
-          noisy_cursor.x *= u_ratio;
-          noisy_cursor.y *= (1. + u_stop_randomizer.y * is_open);
-          noisy_cursor -= .02 * snoise(noisy_cursor * 10. + vec2(0., 10. * sin(.5 * t + PI)));
+          vec2 ncur = vUv - u_point;
+          ncur.x *= u_ratio;
+          ncur.y *= (1.0 + u_stop_randomizer.y * openFlag);
+          ncur -= .02 * snoise(ncur*10.0 + vec2(0.0, 10.0*sin(.5*t+PI)));
 
-          // coloring - vibrant time-varying colors like original
-          vec3 flower_color = u_background_color;
-          flower_color -= normalize(vec3(.5 + .5 * sin(2. * u_time), .3, .5 + .5 * sin(2. * u_time + PI)));
-          color -= .4 * get_dot_shape(noisy_cursor, 1.5 * radius, .0) * flower_color;
+          // vivid ink-like flower color (back to your reference vibe)
+          // two-phase hue swing to keep it playful but not neon chaos
+          float h1 = 0.5 + 0.5 * sin(2.0*u_time + 6.2831*u_stop_randomizer.x);
+          float h2 = 0.5 + 0.5 * sin(2.0*u_time + 3.1415 + 6.2831*u_stop_randomizer.y);
+          vec3 flowerInk = u_background_color
+                         - normalize(vec3(0.35 + 0.45*h1, 0.25 + 0.35*h2, 0.35 + 0.45*h1));
+          // paint petals subtractively
+          color -= 0.40 * dotShape(ncur, 1.5*radius, 0.0) * flowerInk;
 
-          // masking
-          color = .7 * color + .3 * mix(u_background_color, color, 1. - get_dot_shape(noisy_cursor, radius, 0.));
+          // mask mix to keep edges soft
+          color = 0.7*color + 0.3*mix(u_background_color, color, 1.0 - dotShape(ncur, radius, 0.0));
 
-          // big inner white ring
-          noisy_cursor.y -= .02;
-          float inner_r = .7 * radius;
-          float inner_w = .2 * radius;
-          float ring_shape = get_dot_shape(noisy_cursor, inner_r + inner_w, .9) - get_dot_shape(noisy_cursor, inner_r, .9);
-          color += .2 * blooming_time * ring_shape * step(.05, base_radius);
+          // bright inner rings (a bit stronger than metallic version)
+          ncur.y -= .02;
+          float ir=.7*radius, iw=.2*radius;
+          float ring = dotShape(ncur, ir+iw, .9) - dotShape(ncur, ir, .9);
+          color += 0.20*bt*ring*openFlag;
 
-          // small inner white ring
-          inner_r = .4 * radius;
-          inner_w = .1 * radius;
-          ring_shape = get_dot_shape(noisy_cursor, inner_r + inner_w, .9) - get_dot_shape(noisy_cursor, inner_r, .9);
-          color += .1 * pow(t, .5) * ring_shape * step(.05, base_radius);
+          ir=.4*radius; iw=.1*radius;
+          ring = dotShape(ncur, ir+iw, .9) - dotShape(ncur, ir, .9);
+          color += 0.12*pow(t, .5)*ring*openFlag;
 
-          // mid dot
-          vec2 low_noise_cursor = vUv - u_point.xy;
-          low_noise_cursor.x *= .5 * u_ratio;
-          low_noise_cursor.y += .02;
-          low_noise_cursor += .01 * snoise(low_noise_cursor * 10. + t);
-          color -= is_open * pow(t, 5.) * get_dot_shape(low_noise_cursor, .01 * radius, 0.);
+          // center dot stronger
+          vec2 c2 = vUv - u_point;
+          c2.x *= .5*u_ratio; c2.y += .02;
+          c2 += .01*snoise(c2*10.0 + t);
+          color -= openFlag*pow(t,5.0)*dotShape(c2, .012*radius, 0.0);
         }
 
-        gl_FragColor = vec4(color, 1.0);
+        gl_FragColor = vec4(clamp(color,0.0,1.0), 1.0);
       }
     `;
 
@@ -199,6 +201,7 @@ export default function EdgeAwareColorFlowers({
       uniforms: {
         u_ratio: { value: 1.0 },
         u_point: { value: new THREE.Vector2(0.5, 0.5) },
+        u_origin: { value: new THREE.Vector2(0.5, 0.0) }, // set per spawn
         u_time: { value: 0.0 },
         u_stop_time: { value: 0.0 },
         u_stop_randomizer: { value: new THREE.Vector3(0.5, 1.0, 1.0) },
@@ -261,8 +264,35 @@ export default function EdgeAwareColorFlowers({
       screenMat.map = pong.texture;
     };
 
+    // nearest-edge origin (viewport coords → shader coords with Y flip)
+    const nearestEdgeOrigin = (nx: number, ny: number) => {
+      const dTop = ny,
+        dBottom = 1 - ny,
+        dLeft = nx,
+        dRight = 1 - nx;
+      let ox = nx,
+        oy = ny;
+      const minD = Math.min(dTop, dBottom, dLeft, dRight);
+      if (minD === dTop) {
+        ox = nx;
+        oy = 0;
+      } else if (minD === dBottom) {
+        ox = nx;
+        oy = 1;
+      } else if (minD === dLeft) {
+        ox = 0;
+        oy = ny;
+      } else {
+        ox = 1;
+        oy = ny;
+      }
+      return { spx: nx, spy: 1 - ny, sox: ox, soy: 1 - oy };
+    };
+
     const setNewFlower = (nx: number, ny: number) => {
-      shaderMat.uniforms.u_point.value.set(nx, 1 - ny); // flip Y for shader coords
+      const { spx, spy, sox, soy } = nearestEdgeOrigin(nx, ny);
+      shaderMat.uniforms.u_point.value.set(spx, spy);
+      shaderMat.uniforms.u_origin.value.set(sox, soy);
       shaderMat.uniforms.u_stop_randomizer.value.set(
         Math.random(),
         Math.random(),
