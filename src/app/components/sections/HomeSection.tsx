@@ -2,6 +2,8 @@
 ///app/components/sections/HomeSection.tsx
 import React from "react";
 import StreamingTextOnLock from "../animate/StreamingTextOnLock";
+import KeyValueDisplay from "../common/KeyValueDisplay";
+import scopesData from "../../data/scopes.json";
 
 const HomeSection = () => {
   return (
@@ -12,32 +14,23 @@ const HomeSection = () => {
       className="min-h-screen grid grid-rows-4 mt-6"
     >
       <div className="flex flex-col items-start">
-        <h1 className="text-4xl font-bold">source .newmace</h1>
-        <p className="text-[var(--color-text-light)] max-w-2xl mt-5 backdrop-blur-md p-2">
-          newmace is an open organization initiative with various projects and
-          research on Linguistics, Computer Vision, Mathematics, Robotics and
-          other fun.?.{"{"}ny{"}"} projects.
-          <span className="text-[var(--color-primary)]">
-            {" "}
-            Anyone can be a part of this initative towards our open-source
-            projects{" "}
-          </span>
-          To contribute you can see, our github page here
+        <h1 className="text-4xl font-bold">source .newport_engineering</h1>
+        <p className="text-[var(--color-text-light)] max-w-2xl mt-5 backdrop-blur-md py-2 text-3xl">
+          Newport Engineering. we automate we build and it's not a buzzword.
         </p>
       </div>
       <div className="flex flex-col item-top text-right ml-auto px-3">
         <p className="text-2xl text-right  backdrop-blur-md ">
           <span className="text-[var(--color-primary)]">Scopes</span> of
-          researchs && projects
+          Products
         </p>
-        <p className="pt-2 max-w-2xl text-justify  backdrop-blur-md ">
+        <div className="pt-2 max-w-2xl text-justify backdrop-blur-md">
           <span className="text-[var(--color-primary)]">&Scopes*</span> = vec![
-          "Natural Language Processing: Machine Translation, Universal
-          Representation, Information Extraction, Context Understanding,
-          image-text semantic extraction", "Computer Vision: Image Synthesis,
-          Segmentation, Object Detection", "Mathematics: TBD", "Robotics: TBD",
+          <div className="mt-2 ml-4">
+            <KeyValueDisplay data={scopesData} />
+          </div>
           ];
-        </p>
+        </div>
       </div>
       <div className="flex flex-col items-top text-justify border-r-4 border-[var(--color-primary)] pr-8 text-sm  backdrop-blur-md p-2">
         <p className="text-xl">Preface</p>

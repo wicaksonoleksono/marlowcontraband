@@ -122,8 +122,9 @@ const Header: React.FC<HeaderProps> = ({ isScrollMode = false }) => {
       {/* Content layer - no blur, just positioning */}
       <div className="relative flex items-center justify-between px-6 py-4">
         <Link href="/">
-          <h1 className="text-xl font-bold hover:text-[var(--color-primary)] transition-colors cursor-pointer">
-            .newmace
+          <h1 className="text font-bold hover:text-[var(--color-primary)] transition-colors cursor-pointer">
+            newport
+            <br /> engineering
           </h1>
         </Link>
         <nav className="flex gap-6 overflow-x-auto" id="navbar-list">
