@@ -17,9 +17,9 @@ const HomeSection = () => {
       className="min-h-screen grid grid-rows-4 mt-6"
     >
       <div className="flex flex-col items-start">
-        <h1 className="text-7xl font-bold">newport engineering</h1>
-        <p className="text-[var(--color-text-light)] max-w-4xl  backdrop-blur-md py-6 text-3xl">
-          newport engineering. we automate, we build and it's not a buzzword.
+        <h1 className="text-7xl py-3 font-bold">newport engineering</h1>
+        <p className="text-[var(--color-text-light)] max-w-4xl  backdrop-blur-md py-1 text-3xl">
+          building seamless pattern automation. this is not a buzzword
         </p>
       </div>
       <div className="flex flex-row gap-4 items-start justify-start ">

@@ -1,5 +1,4 @@
-import ProductArticleLayout from "./ProductArticleLayout";
-
+import ProductArticleLayout from "../ProductArticleLayout";
 export default function AutomationPlatformArticle() {
   return ProductArticleLayout({
     title: "Automation Platform",
