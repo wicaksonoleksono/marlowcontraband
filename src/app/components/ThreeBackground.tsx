@@ -3,322 +3,316 @@
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 
-export default function EdgeAwareColorFlowers({
-  lambdaPerSec = 0.3, // much slower auto-spawn rate
-  bg = 0xfffcf1,
+/** Tiny vertical gradient texture for the tube */
+function makeGradientTexture(stops: [number, string][]) {
+  const c = document.createElement("canvas");
+  c.width = 1;
+  c.height = 256;
+  const g = c.getContext("2d")!;
+  const grad = g.createLinearGradient(0, 0, 0, 256);
+  for (const [p, col] of stops) grad.addColorStop(p, col);
+  g.fillStyle = grad;
+  g.fillRect(0, 0, 1, 256);
+  const tex = new THREE.CanvasTexture(c);
+  tex.minFilter = THREE.LinearMipMapLinearFilter;
+  tex.magFilter = THREE.LinearFilter;
+  return tex;
+}
+
+/** Visible rect at z=0 plane for a perspective camera */
+function getViewRect(cam: THREE.PerspectiveCamera) {
+  const dist = Math.abs(cam.position.z); // z=0 plane
+  const vH = 2 * dist * Math.tan(THREE.MathUtils.degToRad(cam.fov * 0.5));
+  const vW = vH * cam.aspect;
+  return { minX: -vW / 2, maxX: vW / 2, minY: -vH / 2, maxY: vH / 2 };
+}
+
+type Side = "left" | "right" | "top" | "bottom";
+
+export default function EdgeRootCanvas({
+  side = "left",
+  lane = "left-0 w-full", // tailwind lane control
 }: {
-  lambdaPerSec?: number;
-  bg?: number;
+  side?: Side;
+  lane?: string;
 }) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rafRef = useRef<number | null>(null);
-  const spawnerRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!wrapRef.current || !canvasRef.current) return;
 
-    // Fullscreen ortho + ping-pong shader
+    // Scene + camera
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(22, 1, 0.1, 200);
+    camera.position.set(0, 0, 6);
+
+    // Renderer
     const renderer = new THREE.WebGLRenderer({
-      canvas: canvasRef.current!,
+      canvas: canvasRef.current,
+      antialias: true,
       alpha: true,
-      antialias: false,
-      premultipliedAlpha: true,
       powerPreference: "low-power",
     });
-    const DPR = Math.min(window.devicePixelRatio || 1, 2);
-    renderer.setPixelRatio(DPR);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    renderer.setClearColor(0x000000, 0);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 0.85;
 
-    const shaderScene = new THREE.Scene();
-    const mainScene = new THREE.Scene();
-    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-    const clock = new THREE.Clock();
+    // Soft lights (no chrome)
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x888888, 0.7));
+    const dir = new THREE.DirectionalLight(0xffffff, 0.6);
+    dir.position.set(2, 3, 2);
+    scene.add(dir);
 
-    const backgroundColor = new THREE.Color(bg);
+    // Params
+    const MAX_POINTS = 140;
+    const STEP = 0.022;
 
-    let rtA = new THREE.WebGLRenderTarget(1, 1, { depthBuffer: false });
-    let rtB = new THREE.WebGLRenderTarget(1, 1, { depthBuffer: false });
-    let ping = rtA,
-      pong = rtB;
+    // View rect (updated on resize)
+    let viewRect = getViewRect(camera);
 
-    const planeGeo = new THREE.PlaneGeometry(2, 2);
-
-    const vert = `
-      varying vec2 vUv;
-      void main(){ vUv = uv; gl_Position = vec4(position, 1.0); }
-    `;
-
-    // === IMPROVED VERSION (matching original codepen behavior) ===
-    const frag = `
-      precision highp float;
-      varying vec2 vUv;
-
-      uniform float u_ratio;
-      uniform vec2  u_point;           // bloom center (click point)
-      uniform float u_time;
-      uniform float u_stop_time;
-      uniform vec3  u_stop_randomizer;
-      uniform sampler2D u_texture;
-      uniform vec3  u_background_color;
-
-      #define PI 3.14159265359
-
-      vec3 mod289(vec3 x){return x - floor(x*(1.0/289.0))*289.0;}
-      vec2 mod289(vec2 x){return x - floor(x*(1.0/289.0))*289.0;}
-      vec3 permute(vec3 x){return mod289(((x*34.0)+1.0)*x);}
-      float snoise(vec2 v){
-        const vec4 C=vec4(0.211324865405187,0.366025403784439,-0.577350269189626,0.024390243902439);
-        vec2 i=floor(v+dot(v,C.yy));
-        vec2 x0=v-i+dot(i,C.xx);
-        vec2 i1=(x0.x>x0.y)?vec2(1.0,0.0):vec2(0.0,1.0);
-        vec4 x12=x0.xyxy+C.xxzz; x12.xy-=i1; i=mod289(i);
-        vec3 p=permute(permute(i.y+vec3(0.0,i1.y,1.0))+i.x+vec3(0.0,i1.x,1.0));
-        vec3 m=max(0.5-vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
-        m*=m; m*=m;
-        vec3 x=2.0*fract(p* C.www)-1.0;
-        vec3 h=abs(x)-0.5;
-        vec3 ox=floor(x+0.5);
-        vec3 a0=x-ox;
-        m*=1.79284291400159 - 0.85373472095314*(a0*a0+h*h);
-        vec3 g;
-        g.x=a0.x*x0.x+h.x*x0.y;
-        g.yz=a0.yz*x12.xz+h.yz*x12.yw;
-        return 130.0*dot(m,g);
+    function spawnPoint(): THREE.Vector3 {
+      const m = 0.01; // small inset
+      if (side === "left") {
+        const y = THREE.MathUtils.lerp(
+          viewRect.minY,
+          viewRect.maxY,
+          Math.random()
+        );
+        return new THREE.Vector3(
+          viewRect.minX + (viewRect.maxX - viewRect.minX) * m,
+          y,
+          0
+        );
       }
-
-      float get_dot_shape(vec2 dist, float radius_max, float radius_line) {
-        return 1. - smoothstep(radius_line * radius_max, radius_max, dot(dist, dist) * 4.0);
+      if (side === "right") {
+        const y = THREE.MathUtils.lerp(
+          viewRect.minY,
+          viewRect.maxY,
+          Math.random()
+        );
+        return new THREE.Vector3(
+          viewRect.maxX - (viewRect.maxX - viewRect.minX) * m,
+          y,
+          0
+        );
       }
-
-      float get_stem_shape(vec2 _cursor, vec2 _uv, float _t, float _size, float _flowery, vec2 _rand) {
-        float stroke_width = .01;
-        float noise_power = .2;
-
-        float cursor_horizontal_noise = noise_power * (1. + (1. - _flowery)) * snoise(3. * _uv * (_rand - .5));
-
-        // noise to zero on flower center
-        cursor_horizontal_noise *= pow(dot(_cursor.y, _cursor.y), .3 * _flowery);
-        cursor_horizontal_noise *= pow(dot(_uv.y, _uv.y), .3);// noise to be zero at bottom
-        _cursor.x += cursor_horizontal_noise;
-
-        // non-flowers shorter
-        _cursor.y *= (1. - ((1. - _flowery) * .7));
-        _cursor.y += ((1. - _flowery) * .7 * _rand.x);
-
-        // non-flowers wider
-        stroke_width = (1. - _flowery) * .9 * pow(dot(_uv.y, _cursor.x), 1.) + _flowery * .03;
-        stroke_width -= .02;
-
-        float left = smoothstep(-stroke_width, 0., _cursor.x);
-        float right = smoothstep(stroke_width, 0., _cursor.x);
-        float stem_shape = left * right;
-
-        float stem_top_mask = smoothstep(_cursor.y - .1, _cursor.y, min(-.1, _t - 1.));
-
-        // top ovary
-        stem_shape *= stem_top_mask;
-        stem_shape += .5 * get_dot_shape(_cursor + vec2(0., .02), .15 * _size, .5);
-        stem_shape *= stem_top_mask;
-
-        return stem_shape;
+      if (side === "top") {
+        const x = THREE.MathUtils.lerp(
+          viewRect.minX,
+          viewRect.maxX,
+          Math.random()
+        );
+        return new THREE.Vector3(
+          x,
+          viewRect.maxY - (viewRect.maxY - viewRect.minY) * m,
+          0
+        );
       }
+      // bottom
+      const x = THREE.MathUtils.lerp(
+        viewRect.minX,
+        viewRect.maxX,
+        Math.random()
+      );
+      return new THREE.Vector3(
+        x,
+        viewRect.minY + (viewRect.maxY - viewRect.minY) * m,
+        0
+      );
+    }
 
-      void main() {
-        float speed = 1.3;
-        float t = speed * u_stop_time;
+    // Field = gentle curl + pull to center (for tube1)
+    function field1(v: THREE.Vector3, t: number) {
+      const s = 0.7;
+      const a = Math.sin((v.x + t) * s) + Math.cos((v.y - t) * s * 0.9);
+      const b = Math.cos((v.x - t) * s * 0.8) - Math.sin((v.y + t) * s);
+      const toC = new THREE.Vector2(-v.x * 0.25, -v.y * 0.25);
+      return new THREE.Vector2(-b, a).multiplyScalar(0.45).add(toC);
+    }
 
-        vec2 uv = vUv;
-        uv += 0.00007 * snoise(vUv * 6.0 + vec2(0.0, 15.0 * cos(0.1 * u_time)));
-        uv.y += 0.00005;
+    // Independent field for tube2 - different pattern
+    function field2(v: THREE.Vector3, t: number) {
+      const s = 0.5;
+      const a = Math.cos((v.x - t) * s * 1.2) + Math.sin((v.y + t) * s * 0.7);
+      const b = Math.sin((v.x + t) * s * 0.6) + Math.cos((v.y - t) * s * 1.1);
+      const toC = new THREE.Vector2(-v.x * 0.15, -v.y * 0.3);
+      return new THREE.Vector2(a, -b).multiplyScalar(0.35).add(toC);
+    }
 
-        vec3 color = texture2D(u_texture, uv).xyz;
-        color += 0.0015 * u_background_color;
+    // Points for first tube
+    const pts1: THREE.Vector3[] = [];
+    const start1 = spawnPoint();
+    pts1.push(start1.clone());
 
-        vec2 cursor = uv - u_point.xy;
-        cursor.x *= u_ratio;
+    // Points for second tube
+    const pts2: THREE.Vector3[] = [];
+    const start2 = spawnPoint();
+    pts2.push(start2.clone());
 
-        float base_radius = .01 + .08 * u_stop_randomizer.y; // much smaller scale
-        float grow_duration = .6;
-        float grow_speed = 2. * speed;
-        float bloom_duration = .3 * u_stop_randomizer.y;
+    const inwardStep = (axis: "x" | "y") =>
+      (axis === "x"
+        ? viewRect.maxX - viewRect.minX
+        : viewRect.maxY - viewRect.minY) * 0.012;
 
-        float is_open = step(.05, base_radius); // smaller threshold
+    // Initialize both tubes
+    for (let i = 0; i < 4; i++) {
+      // First tube
+      const p1 = pts1[pts1.length - 1].clone();
+      if (side === "left") p1.x += inwardStep("x");
+      else if (side === "right") p1.x -= inwardStep("x");
+      else if (side === "top") p1.y -= inwardStep("y");
+      else p1.y += inwardStep("y");
+      pts1.push(p1);
 
-        if (t < grow_duration) {
-          vec3 stem_color = u_background_color - normalize(vec3(.3, .5, .1));
-          float stem_shape = get_stem_shape(cursor, uv, grow_speed * t, base_radius, 1., u_stop_randomizer.xy);
-          stem_shape += get_stem_shape(cursor, uv, grow_speed * t, 0., 0., u_stop_randomizer.yz);
-          stem_shape += get_stem_shape(cursor, uv, grow_speed * t, 0., 0., u_stop_randomizer.zy);
-          vec3 stem = stem_shape * stem_color;
-          color -= stem;
-        }
+      // Second tube
+      const p2 = pts2[pts2.length - 1].clone();
+      if (side === "left") p2.x += inwardStep("x");
+      else if (side === "right") p2.x -= inwardStep("x");
+      else if (side === "top") p2.y -= inwardStep("y");
+      else p2.y += inwardStep("y");
+      pts2.push(p2);
+    }
 
-        if (t < grow_duration + is_open * bloom_duration) {
-          float blooming_time = max(0., pow(1.1 * t, 2.) - .05);
-          float radius = base_radius * blooming_time;
-
-          vec2 noisy_cursor = vUv - u_point.xy;
-          noisy_cursor.x *= u_ratio;
-          noisy_cursor.y *= (1. + u_stop_randomizer.y * is_open);
-          noisy_cursor -= .02 * snoise(noisy_cursor * 10. + vec2(0., 10. * sin(.5 * t + PI)));
-
-          // coloring - vibrant time-varying colors like original
-          vec3 flower_color = u_background_color;
-          flower_color -= normalize(vec3(.5 + .5 * sin(2. * u_time), .3, .5 + .5 * sin(2. * u_time + PI)));
-          color -= .4 * get_dot_shape(noisy_cursor, 1.5 * radius, .0) * flower_color;
-
-          // masking
-          color = .7 * color + .3 * mix(u_background_color, color, 1. - get_dot_shape(noisy_cursor, radius, 0.));
-
-          // big inner white ring
-          noisy_cursor.y -= .02;
-          float inner_r = .7 * radius;
-          float inner_w = .2 * radius;
-          float ring_shape = get_dot_shape(noisy_cursor, inner_r + inner_w, .9) - get_dot_shape(noisy_cursor, inner_r, .9);
-          color += .2 * blooming_time * ring_shape * step(.05, base_radius);
-
-          // small inner white ring
-          inner_r = .4 * radius;
-          inner_w = .1 * radius;
-          ring_shape = get_dot_shape(noisy_cursor, inner_r + inner_w, .9) - get_dot_shape(noisy_cursor, inner_r, .9);
-          color += .1 * pow(t, .5) * ring_shape * step(.05, base_radius);
-
-          // mid dot
-          vec2 low_noise_cursor = vUv - u_point.xy;
-          low_noise_cursor.x *= .5 * u_ratio;
-          low_noise_cursor.y += .02;
-          low_noise_cursor += .01 * snoise(low_noise_cursor * 10. + t);
-          color -= is_open * pow(t, 5.) * get_dot_shape(low_noise_cursor, .01 * radius, 0.);
-        }
-
-        gl_FragColor = vec4(color, 1.0);
-      }
-    `;
-
-    const shaderMat = new THREE.ShaderMaterial({
-      uniforms: {
-        u_ratio: { value: 1.0 },
-        u_point: { value: new THREE.Vector2(0.5, 0.5) },
-        u_time: { value: 0.0 },
-        u_stop_time: { value: 0.0 },
-        u_stop_randomizer: { value: new THREE.Vector3(0.5, 1.0, 1.0) },
-        u_texture: { value: null as unknown as THREE.Texture },
-        u_background_color: { value: new THREE.Color(backgroundColor) },
-      },
-      vertexShader: vert,
-      fragmentShader: frag,
+    // Material + initial tube
+    const gradTex = makeGradientTexture([
+      [0.0, "#ff7a7a"],
+      [0.35, "#ffb36b"],
+      [0.65, "#7ec8ff"],
+      [1.0, "#9a8cff"],
+    ]);
+    const mat = new THREE.MeshPhysicalMaterial({
+      map: gradTex,
+      roughness: 0.85,
+      metalness: 0.1,
       transparent: true,
+      opacity: 0.9,
+      envMapIntensity: 0.25,
+      depthWrite: false, // keeps text crisp
     });
 
-    const shaderQuad = new THREE.Mesh(planeGeo, shaderMat);
-    shaderScene.add(shaderQuad);
+    // First tube
+    let curve1 = new THREE.CatmullRomCurve3(pts1, false, "catmullrom", 0.3);
+    let geom1 = new THREE.TubeGeometry(curve1, 200, 0.045, 16, false);
+    const tube1 = new THREE.Mesh(geom1, mat);
+    tube1.renderOrder = -1;
+    scene.add(tube1);
 
-    const screenMat = new THREE.MeshBasicMaterial({
-      map: pong.texture,
-      transparent: true,
-    });
-    const screenQuad = new THREE.Mesh(planeGeo, screenMat);
-    mainScene.add(screenQuad);
+    // Second tube with slightly different material
+    const mat2 = mat.clone();
+    mat2.opacity = 0.7; // Make second tube slightly more transparent
+    let curve2 = new THREE.CatmullRomCurve3(pts2, false, "catmullrom", 0.3);
+    let geom2 = new THREE.TubeGeometry(curve2, 200, 0.035, 16, false); // Slightly thinner
+    const tube2 = new THREE.Mesh(geom2, mat2);
+    tube2.renderOrder = -1;
+    scene.add(tube2);
 
-    // size / RTs
+    // Resize
     const resize = () => {
       const w = wrapRef.current!.clientWidth;
       const h = wrapRef.current!.clientHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
       renderer.setSize(w, h, false);
-
-      rtA.dispose();
-      rtB.dispose();
-      rtA = new THREE.WebGLRenderTarget(
-        Math.max(1, Math.floor(w * DPR)),
-        Math.max(1, Math.floor(h * DPR))
-      );
-      rtB = new THREE.WebGLRenderTarget(
-        Math.max(1, Math.floor(w * DPR)),
-        Math.max(1, Math.floor(h * DPR))
-      );
-      ping = rtA;
-      pong = rtB;
-      screenMat.map = pong.texture;
-      shaderMat.uniforms.u_ratio.value = w / Math.max(1, h);
-
-      // clear both to background
-      renderer.setRenderTarget(ping);
-      renderer.setClearColor(backgroundColor, 1);
-      renderer.clear();
-      renderer.setRenderTarget(pong);
-      renderer.setClearColor(backgroundColor, 1);
-      renderer.clear();
-      renderer.setRenderTarget(null);
+      viewRect = getViewRect(camera); // keep edge math correct
     };
-    const ro = new ResizeObserver(resize);
-    ro.observe(wrapRef.current);
     resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(wrapRef.current!);
 
-    const swap = () => {
-      const t = ping;
-      ping = pong;
-      pong = t;
-      screenMat.map = pong.texture;
-    };
+    // Animate growth
+    const clock = new THREE.Clock();
+    let rebuildCooldown = 0;
 
-    const setNewFlower = (nx: number, ny: number) => {
-      shaderMat.uniforms.u_point.value.set(nx, 1 - ny); // flip Y for shader coords
-      shaderMat.uniforms.u_stop_randomizer.value.set(
-        Math.random(),
-        Math.random(),
-        Math.random()
-      );
-      shaderMat.uniforms.u_stop_time.value = 0.0;
-    };
-
-    // Poisson spawn
-    const randExp = (lambda: number) => -Math.log(1 - Math.random()) / lambda;
-    const scheduleNext = () => {
-      const delay = randExp(lambdaPerSec) * 1000;
-      spawnerRef.current = window.setTimeout(() => {
-        setNewFlower(Math.random(), Math.random());
-        scheduleNext();
-      }, delay);
-    };
-    scheduleNext();
-
-    // continuous pass each frame
     const loop = () => {
-      const dt = clock.getDelta();
-      shaderMat.uniforms.u_stop_time.value += dt;
-      shaderMat.uniforms.u_time.value = clock.elapsedTime;
+      const t = clock.getElapsedTime();
 
-      shaderMat.uniforms.u_texture.value = ping.texture;
-      renderer.setRenderTarget(pong);
-      renderer.render(shaderScene, camera);
-      renderer.setRenderTarget(null);
-      swap();
+      // Update first tube
+      const tip1 = pts1[pts1.length - 1].clone();
+      const fv1 = field1(tip1, t);
+      tip1.x += fv1.x * STEP;
+      tip1.y += fv1.y * STEP;
+      tip1.z = Math.sin((tip1.x + tip1.y + t) * 0.2) * 0.05;
+      pts1.push(tip1);
+      if (pts1.length > MAX_POINTS) pts1.shift();
 
-      renderer.render(mainScene, camera);
+      // Update second tube - completely independent movement
+      const tip2 = pts2[pts2.length - 1].clone();
+      const fv2 = field2(tip2, t * 1.3); // Different time scale
+      tip2.x += fv2.x * STEP * 1.2; // Different speed
+      tip2.y += fv2.y * STEP * 1.1;
+      tip2.z = Math.cos((tip2.x - tip2.y + t * 0.8) * 0.3) * 0.08; // Different Z movement
+      pts2.push(tip2);
+      if (pts2.length > MAX_POINTS) pts2.shift();
+
+      if (pts1.length >= 3 && --rebuildCooldown <= 0) {
+        // Rebuild first tube
+        curve1 = new THREE.CatmullRomCurve3(pts1, false, "catmullrom", 0.3);
+        tube1.geometry.dispose();
+        geom1 = new THREE.TubeGeometry(curve1, 200, 0.045, 16, false);
+        tube1.geometry = geom1;
+        
+        // Rebuild second tube
+        curve2 = new THREE.CatmullRomCurve3(pts2, false, "catmullrom", 0.3);
+        tube2.geometry.dispose();
+        geom2 = new THREE.TubeGeometry(curve2, 200, 0.035, 16, false);
+        tube2.geometry = geom2;
+        
+        rebuildCooldown = 2;
+      }
+
+      // Different breathing for each tube
+      tube1.rotation.z = THREE.MathUtils.lerp(
+        tube1.rotation.z,
+        0.06 * Math.sin(t * 0.2),
+        0.05
+      );
+      tube2.rotation.z = THREE.MathUtils.lerp(
+        tube2.rotation.z,
+        0.04 * Math.sin(t * 0.15 + 1),
+        0.03
+      );
+
+      renderer.render(scene, camera);
       rafRef.current = requestAnimationFrame(loop);
     };
     rafRef.current = requestAnimationFrame(loop);
 
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      if (spawnerRef.current) clearTimeout(spawnerRef.current);
       ro.disconnect();
+      tube1.geometry.dispose();
+      tube2.geometry.dispose();
+      (tube1.material as THREE.Material).dispose();
+      (tube2.material as THREE.Material).dispose();
       renderer.dispose();
-      rtA.dispose();
-      rtB.dispose();
-      planeGeo.dispose();
-      screenMat.dispose();
-      shaderMat.dispose();
     };
-  }, [lambdaPerSec, bg]);
+  }, [side]);
 
   return (
     <div
       ref={wrapRef}
-      className="fixed inset-0 pointer-events-none"
-      style={{ zIndex: -1, background: "transparent" }}
+      className={`fixed inset-y-0 ${lane} pointer-events-none z-0 mask-soft`}
+      data-lenis-prevent
     >
       <canvas ref={canvasRef} className="w-full h-full block" />
+      <style jsx global>{`
+        .mask-soft {
+          -webkit-mask-image: radial-gradient(
+            120% 80% at 65% 50%,
+            black 45%,
+            transparent 78%
+          );
+          mask-image: radial-gradient(
+            120% 80% at 65% 50%,
+            black 45%,
+            transparent 78%
+          );
+          opacity: 0.65;
+        }
+      `}</style>
     </div>
   );
 }

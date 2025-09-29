@@ -32,29 +32,6 @@ const ResearchSection = () => {
           ))}
         </div>
       </div>
-
-      <div className="p-6 border hover:shadow-lg transition-shadow backdrop-blur-md">
-        <h2 className="text-2xl font-bold mb-4">Collaboration</h2>
-        <p className="mb-4">
-          We are always open to collaborating on interesting research projects.
-          Whether you're working on cutting-edge technology, need help with
-          analysis, or want to explore new ideas together, let's connect!
-        </p>
-        <div className="flex gap-4">
-          <button 
-            onClick={() => window.location.href = 'mailto:contact@example.com'}
-            className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 transition-colors"
-          >
-            Contact us
-          </button>
-          <button 
-            onClick={() => window.open('#publications', '_self')}
-            className="px-4 py-2 border border-orange-500 text-orange-500 rounded hover:bg-orange-50 transition-colors"
-          >
-            View Publications
-          </button>
-        </div>
-      </div>
     </section>
   );
 };

@@ -15,20 +15,26 @@ export const pagesConfig: PageConfig[] = [
   {
     id: "projects",
     route: "#projects",
-    displayName: "Projects",
+    displayName: "Opensource Projects",
     anchor: "#projects",
+  },
+  {
+    id: "products",
+    route: "#products",
+    displayName: "Products",
+    anchor: "#products",
   },
   {
     id: "research",
     route: "#research",
-    displayName: "Research",
+    displayName: "research",
     anchor: "#research",
   },
   {
-    id: "writings",
-    route: "#writings",
-    displayName: "writings",
-    anchor: "#writings",
+    id: "contact",
+    route: "#contact",
+    displayName: "Contact",
+    anchor: "#contact",
   },
 ];
 

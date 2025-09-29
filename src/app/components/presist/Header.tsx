@@ -120,7 +120,7 @@ const Header: React.FC<HeaderProps> = ({ isScrollMode = false }) => {
       />
 
       {/* Content layer - no blur, just positioning */}
-      <div className="relative flex items-center justify-between px-6 py-4">
+      <div className="relative flex items-center justify-between px-5 py-1">
         <Link href="/">
           <h1 className="text font-bold hover:text-[var(--color-primary)] transition-colors cursor-pointer">
             newport
@@ -132,7 +132,7 @@ const Header: React.FC<HeaderProps> = ({ isScrollMode = false }) => {
             <Link
               key={page.id}
               href={isScrollMode ? page.anchor : page.route}
-              className={`font-bold transition-colors whitespace-nowrap px-3 py-2 relative ${
+              className={`font-bold transition-colors whitespace-nowrap px-3 py-1 relative ${
                 isScrollMode && activeSection === page.id
                   ? " border-1 border-[var(--color-primary)]"
                   : "hover:text-[var(--color-primary)] rounded-md"
