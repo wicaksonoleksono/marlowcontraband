@@ -9,7 +9,7 @@
   {
     "id": "project-2",
     "title": "marlow's-curiosity",
-    "description": "A free place to learn like khan academy without gamification rather relies on independences and pure curiosity for 1 grader to college level student or for lifelong learner ",
+    "description": "A free place to learn like khan academy without gamification rather relies on independences and pure curiosity for 1 grader to college level student or for general curious person ",
     "stack": ["NextJS", "Redis", "Postgre"],
     "github": "https://github.com/wicaksonoleksono/learnbycuriosity.marlow.com"
   }

@@ -21,8 +21,14 @@ export const pagesConfig: PageConfig[] = [
   {
     id: "research",
     route: "#research",
-    displayName: "Research ?",
+    displayName: "Research",
     anchor: "#research",
+  },
+  {
+    id: "writings",
+    route: "#writings",
+    displayName: "writings",
+    anchor: "#writings",
   },
 ];
 

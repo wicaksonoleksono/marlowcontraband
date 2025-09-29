@@ -4,6 +4,7 @@ import React from "react";
 import HomeSection from "./components/sections/HomeSection";
 import ProjectsSection from "./components/sections/ProjectsSection";
 import ResearchSection from "./components/sections/ResearchSection";
+import WritingsSection from "./components/sections/WritingsSection";
 import Header from "./components/presist/Header";
 import Footer from "./components/presist/footer";
 import { LenisProvider } from "./context/LenisContext";
@@ -25,6 +26,7 @@ export default function RootPage() {
             <HomeSection />
             <ProjectsSection />
             <ResearchSection />
+            <WritingsSection />
           </div>
         </div>
         <Footer />
