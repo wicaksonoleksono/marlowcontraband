@@ -12,7 +12,12 @@ export const pagesConfig: PageConfig[] = [
     displayName: "Home",
     anchor: "#home",
   },
-
+  {
+    id: "about",
+    route: "#about",
+    displayName: "About Us",
+    anchor: "#about",
+  },
   {
     id: "products",
     route: "#products",
@@ -22,7 +27,7 @@ export const pagesConfig: PageConfig[] = [
   {
     id: "projects",
     route: "#projects",
-    displayName: "Opensource Projects",
+    displayName: "Projects",
     anchor: "#projects",
   },
   {

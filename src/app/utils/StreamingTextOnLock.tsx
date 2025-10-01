@@ -4,20 +4,79 @@
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useLenis } from "../../context/LenisContext";
-
+import { useLenis } from "../hooks/LenisContext";
 gsap.registerPlugin(ScrollTrigger);
+
+// Helper function to extract plain text from HTML for streaming logic
+function extractPlainText(html: string): string {
+  return html.replace(/<[^>]*>/g, "");
+}
+
+// Helper function to rebuild HTML with streamed characters
+function buildStreamedHtml(html: string, charCount: number): string {
+  let plainTextIndex = 0;
+  let result = "";
+  let i = 0;
+
+  while (i < html.length && plainTextIndex < charCount) {
+    if (html[i] === "<") {
+      // Find the end of the tag
+      let tagEnd = html.indexOf(">", i);
+      if (tagEnd !== -1) {
+        // Add the entire tag
+        result += html.substring(i, tagEnd + 1);
+        i = tagEnd + 1;
+      } else {
+        break;
+      }
+    } else {
+      // Regular character - count it and add if within limit
+      if (plainTextIndex < charCount) {
+        result += html[i];
+        plainTextIndex++;
+      }
+      i++;
+    }
+  }
+
+  // Close any unclosed tags
+  const openTags: string[] = [];
+  const tagRegex = /<(\/?)([\w-]+)(?:\s[^>]*)?>/g;
+  let match;
+  let tempResult = result;
+
+  while ((match = tagRegex.exec(result)) !== null) {
+    const isClosing = match[1] === "/";
+    const tagName = match[2];
+
+    if (isClosing) {
+      openTags.pop();
+    } else if (!["br", "hr", "img", "input"].includes(tagName.toLowerCase())) {
+      openTags.push(tagName);
+    }
+  }
+
+  // Close remaining open tags
+  while (openTags.length > 0) {
+    const tagToClose = openTags.pop();
+    result += `</${tagToClose}>`;
+  }
+
+  return result;
+}
 
 interface Props {
   text: string;
   mode?: "char" | "word";
   replay?: boolean; // NEW: if true, allow replay. default false (one-shot).
+  allowHtml?: boolean; // NEW: if true, parse simple HTML tags
 }
 
 export default function StreamingTextOnLock({
   text,
   mode = "char",
   replay = false,
+  allowHtml = false,
 }: Props) {
   const ref = useRef<HTMLParagraphElement>(null);
   const [count, setCount] = useState(0);
@@ -28,12 +87,12 @@ export default function StreamingTextOnLock({
   const hasPlayed = useRef(false); // NEW
 
   const tokens = useMemo(() => {
-    if (mode === "char") return Array.from(text.trim());
-    return text
-      .trim()
+    const workingText = allowHtml ? extractPlainText(text.trim()) : text.trim();
+    if (mode === "char") return Array.from(workingText);
+    return workingText
       .split(" ")
       .map((w, i, arr) => (i < arr.length - 1 ? w + " " : w));
-  }, [text, mode]);
+  }, [text, mode, allowHtml]);
 
   useEffect(() => {
     if (!lenis) return;
@@ -103,11 +162,17 @@ export default function StreamingTextOnLock({
     };
   }, [lenis, tokens.length, replay]);
 
-  const shown = useMemo(() => tokens.slice(0, count).join(""), [tokens, count]);
+  const shown = useMemo(() => {
+    if (allowHtml) {
+      const plainTextCount = tokens.slice(0, count).join("").length;
+      return buildStreamedHtml(text.trim(), plainTextCount);
+    }
+    return tokens.slice(0, count).join("");
+  }, [tokens, count, allowHtml, text]);
 
   return (
-    <p ref={ref}>
-      {shown}
+    <p ref={ref} className="border-r-4 border-[var(--color-primary)]  pr-7 ">
+      {allowHtml ? <span dangerouslySetInnerHTML={{ __html: shown }} /> : shown}
       <span className="animate-pulse">{count < tokens.length ? "|" : ""}</span>
     </p>
   );

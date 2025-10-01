@@ -1,7 +1,6 @@
 import React from "react";
-import { Project } from "../../types/content";
-import projectsData from "../../data/projects.json";
-
+import { Project } from "../types/content";
+import projectsData from "../data/projects.json";
 const ProjectsSection = () => {
   const projects: Project[] = projectsData;
 
@@ -19,12 +18,14 @@ const ProjectsSection = () => {
             className="p-6 border hover:shadow-lg transition-shadow  backdrop-blur-md"
           >
             <h2 className="text-xl font-bold mb-3">{project.title}</h2>
-            <p className="text-gray-600 mb-4">{project.description}</p>
+            <p className="text-[var(--color-text-light)] mb-4">
+              {project.description}
+            </p>
             <div className="flex gap-2 flex-wrap">
               {project.stack.map((tech) => (
                 <span
                   key={tech}
-                  className="px-2 py-1 bg-orange-100 text-orange-800 text-sm rounded"
+                  className="px-2 py-1 bg-[var(--color-primary)] text-[var(--tag-text)] text-sm rounded"
                 >
                   {tech}
                 </span>

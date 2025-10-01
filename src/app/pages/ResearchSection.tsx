@@ -1,6 +1,6 @@
 import React from "react";
-import { ResearchArea } from "../../types/content";
-import researchData from "../../data/research.json";
+import { ResearchArea } from "../types/content";
+import researchData from "../data/research.json";
 
 const ResearchSection = () => {
   const researchAreas: ResearchArea[] = researchData;
@@ -23,11 +23,13 @@ const ResearchSection = () => {
             >
               <h3 className="text-xl font-bold mb-2">{area.title}</h3>
               <div className="flex gap-2 flex-wrap mb-3">
-                <span className="px-2 py-1 bg-orange-100 text-orange-800 text-sm rounded">
+                <span className="px-2 py-1 bg-[var(--color-primary)] text-[var(--tag-text)] text-sm rounded">
                   {area.group.toUpperCase()}
                 </span>
               </div>
-              <p className="text-gray-600">{area.description}</p>
+              <p className="text-[var(--color-text-light)]">
+                {area.description}
+              </p>
             </div>
           ))}
         </div>

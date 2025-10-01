@@ -3,9 +3,14 @@ import React from "react";
 interface KeyValueDisplayProps {
   data: Record<string, any>;
   className?: string;
+  onItemClick?: (key: string, value: any) => void;
 }
 
-const KeyValueDisplay: React.FC<KeyValueDisplayProps> = ({ data, className = "" }) => {
+const KeyValueDisplay: React.FC<KeyValueDisplayProps> = ({ 
+  data, 
+  className = "",
+  onItemClick 
+}) => {
   const isUrl = (value: string): boolean => {
     try {
       new URL(value);
@@ -15,19 +20,22 @@ const KeyValueDisplay: React.FC<KeyValueDisplayProps> = ({ data, className = "" 
     }
   };
 
-  const isArray = (value: any): boolean => {
-    return Array.isArray(value);
+  const handleItemClick = (key: string, value: any) => {
+    if (onItemClick) {
+      onItemClick(key, value);
+    }
   };
 
   const renderValue = (key: string, value: any) => {
-    if (isArray(value)) {
+    // Array values - render as tags
+    if (Array.isArray(value)) {
       return (
         <div className="flex flex-wrap gap-2">
           {value.map((item, index) => (
             <span
               key={index}
-              className="px-2 py-1 bg-gray-100 text-gray-700 rounded-md text-sm hover:text-[var(--color-primary)] cursor-pointer transition-colors"
-              onClick={() => console.log(`Clicked: ${item}`)}
+              className="px-2 py-1 bg-[var(--color-primary)] bg-opacity-20 text-[var(--tag-text)] rounded text-sm hover:bg-opacity-30 cursor-pointer transition-colors"
+              onClick={() => handleItemClick(key, item)}
             >
               {item}
             </span>
@@ -36,20 +44,21 @@ const KeyValueDisplay: React.FC<KeyValueDisplayProps> = ({ data, className = "" 
       );
     }
 
+    // URL values - render as links
     if (typeof value === "string" && isUrl(value)) {
       return (
         <a
           href={value}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[var(--color-primary)] hover:text-[var(--color-primary)] cursor-pointer transition-colors"
+          className="text-[var(--color-primary)] hover:text-[var(--color-secondary)] underline transition-colors"
         >
           {value}
         </a>
       );
     }
 
-    // Handle comma-separated values
+    // Comma-separated values - render as clickable items
     if (typeof value === "string" && value.includes(",")) {
       const items = value.split(",").map(item => item.trim());
       return (
@@ -58,7 +67,7 @@ const KeyValueDisplay: React.FC<KeyValueDisplayProps> = ({ data, className = "" 
             <span key={index}>
               <span 
                 className="hover:text-[var(--color-primary)] cursor-pointer transition-colors"
-                onClick={() => console.log(`Clicked item: ${item}`)}
+                onClick={() => handleItemClick(key, item)}
               >
                 {item}
               </span>
@@ -69,8 +78,12 @@ const KeyValueDisplay: React.FC<KeyValueDisplayProps> = ({ data, className = "" 
       );
     }
 
+    // Default string/number values
     return (
-      <span className="text-gray-700 hover:text-[var(--color-primary)] cursor-pointer transition-colors text-justify">
+      <span 
+        className="text-[var(--color-text-light)] hover:text-[var(--color-primary)] cursor-pointer transition-colors"
+        onClick={() => handleItemClick(key, value)}
+      >
         {String(value)}
       </span>
     );
@@ -81,8 +94,8 @@ const KeyValueDisplay: React.FC<KeyValueDisplayProps> = ({ data, className = "" 
       {Object.entries(data).map(([key, value], index) => (
         <span key={key}>
           <span 
-            className="font-medium text-gray-900 hover:text-[var(--color-primary)] cursor-pointer transition-colors"
-            onClick={() => console.log(`Clicked key: ${key}`, value)}
+            className="font-medium text-[var(--foreground)] hover:text-[var(--color-primary)] cursor-pointer transition-colors"
+            onClick={() => handleItemClick(key, value)}
           >
             {key.replace(/_/g, ' ')}
           </span>

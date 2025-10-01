@@ -8,21 +8,13 @@ import {
   Transition,
   TransitionChild,
 } from "@headlessui/react";
-import AutomationPlatformArticle from "../articles/AutomationPlatformArticle";
-import { ProductConfig } from "../../config/products";
+import { ArticleData } from "../../config/articleLoader";
 
 interface ProductModalProps {
-  product: ProductConfig | null;
+  product: ArticleData | null;
   isOpen: boolean;
   onClose: () => void;
 }
-
-const ProductArticles: Record<
-  string,
-  () => { title: string; description: string; content: React.ReactNode }
-> = {
-  AutomationPlatformArticle,
-};
 
 export default function ProductModal({
   product,
@@ -30,9 +22,6 @@ export default function ProductModal({
   onClose,
 }: ProductModalProps) {
   if (!product) return null;
-
-  const ArticleComponent = ProductArticles[product.component];
-  const articleData = ArticleComponent ? ArticleComponent() : null;
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -64,15 +53,18 @@ export default function ProductModal({
             >
               {/* Full-screen sheet feel. You can make this max-w-4xl rounded if you prefer a centered modal */}
               <DialogPanel className="relative w-full min-h-screen bg-[rgb(var(--bg-rgb),_1)]/90 backdrop-blur-md">
-                <div className="w-4/5 mx-auto py-8 max-h-screen overflow-y-auto scroll-smooth scrollbar-hide" data-lenis-prevent>
+                <div
+                  className="w-4/5 mx-auto py-8 max-h-screen overflow-y-auto scroll-smooth scrollbar-hide"
+                  data-lenis-prevent
+                >
                   {/* Header */}
                   <div className="flex items-start justify-between mb-8">
                     <div className="flex-1">
                       <DialogTitle className="text-4xl font-bold mb-2">
-                        {articleData?.title || "Article"}
+                        {product.title}
                       </DialogTitle>
                       <p className="text-lg text-[var(--color-text-light)] opacity-90">
-                        {articleData?.description || "No description available"}
+                        {product.description}
                       </p>
                     </div>
                     <button
@@ -85,15 +77,7 @@ export default function ProductModal({
                   </div>
 
                   {/* Content */}
-                  <div>
-                    {articleData ? (
-                      articleData.content
-                    ) : (
-                      <div className="text-[var(--color-text-light)]">
-                        Article component not found: {product.component}
-                      </div>
-                    )}
-                  </div>
+                  <div>{product.content}</div>
                 </div>
               </DialogPanel>
             </TransitionChild>

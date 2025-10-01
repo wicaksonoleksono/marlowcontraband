@@ -1,14 +1,15 @@
 "use client";
 
 import React from "react";
-import HomeSection from "./components/sections/HomeSection";
-import ProjectsSection from "./components/sections/ProjectsSection";
-import ProductsSection from "./components/sections/ProductsSection";
-import ResearchSection from "./components/sections/ResearchSection";
-import ContactSection from "./components/sections/ContactSection";
-import Header from "./components/presist/Header";
-import Footer from "./components/presist/footer";
-import { LenisProvider } from "./context/LenisContext";
+import HomeSection from "./pages/HomeSection";
+import AboutSection from "./pages/AboutSection";
+import ProjectsSection from "./pages/ProjectsSection";
+import ProductsSection from "./pages/ProductsSection";
+import ResearchSection from "./pages/ResearchSection";
+import ContactSection from "./pages/ContactSection";
+import Header from "./components/layout/Header";
+import Footer from "./components/layout/footer";
+import { LenisProvider } from "./hooks/LenisContext";
 // import ThreeBackground from "./components/ThreeBackground";
 import EdgeRootCanvas from "./components/ThreeBackground";
 export default function RootPage() {
@@ -22,10 +23,11 @@ export default function RootPage() {
         <EdgeRootCanvas />
         <Header isScrollMode={true} />
         {/* scrollTo logic will be handled differently or removed */}
-        <div className="w-[65vw] mx-auto pt-20 ">
+        <div className="mx-auto pt-20" style={{width: 'var(--layout-width)'}}>
           <div className="flex flex-col justify-between px-6 py-4 w-full">
             {/* No need to pass lenis as a prop anymore! */}
             <HomeSection />
+            <AboutSection />
             <ProductsSection />
             <ProjectsSection />
             <ResearchSection />
