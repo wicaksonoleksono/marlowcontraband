@@ -16,8 +16,10 @@ export default function DarkModeToggle() {
   return (
     <button
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="p-1.5 text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white transition-all duration-200"
-      aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+      className="p-1.5 text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white transition-all duration-200 ml-2"
+      aria-label={
+        theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+      }
     >
       {theme === "dark" ? (
         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">

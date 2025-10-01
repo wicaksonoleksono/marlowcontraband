@@ -25,12 +25,6 @@ export const pagesConfig: PageConfig[] = [
     anchor: "#products",
   },
   {
-    id: "projects",
-    route: "#projects",
-    displayName: "Projects",
-    anchor: "#projects",
-  },
-  {
     id: "research",
     route: "#research",
     displayName: "research",

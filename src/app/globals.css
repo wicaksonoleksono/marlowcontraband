@@ -2,14 +2,14 @@
 
 :root {
   --background: #fffcf1;
-  --foreground: #1a1a1a;
-  --color-primary: #ff6b35;
-  --color-secondary: #ff8f5a;
-  --color-accent: #ffaa7a;
-  --color-text-dark: #0f0f0f;
-  --color-text-light: #525252;
-  --color-warning: #ff4d1a;
-  --tag-text: #e0e0e0;
+  --foreground: #000000;
+  --color-primary: #000000;
+  --color-secondary: #6b7280;
+  --color-accent: #9ca3af;
+  --color-text-dark: #000000;
+  --color-text-light: #6b7280;
+  --color-warning: #000000;
+  --tag-text: #ffffff;
   --layout-width: 85vw;
   
   /* ThreeJS colors for light mode */
@@ -24,15 +24,15 @@
 }
 
 .dark {
-  --background: #1a1a1a;
-  --foreground: #f5f5f5;
-  --color-primary: #ff8f5a;
-  --color-secondary: #ffaa7a;
-  --color-accent: #ffc49a;
+  --background: #000000;
+  --foreground: #ffffff;
+  --color-primary: #BB86FC;
+  --color-secondary: #03DAC5;
+  --color-accent: #03DAC5;
   --color-text-dark: #ffffff;
-  --color-text-light: #e0e0e0;
-  --color-warning: #ff6b35;
-  --tag-text: #e0e0e0;
+  --color-text-light: #ffffff;
+  --color-warning: #BB86FC;
+  --tag-text: #000000;
   
   /* ThreeJS colors for dark mode */
   --three-bg: #0a0a0a;

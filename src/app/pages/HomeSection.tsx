@@ -12,10 +12,10 @@ const HomeSection = () => {
     <section
       id="home"
       data-section="home"
-      className="min-h-screen grid grid-rows-4 mt-6"
+      className="min-h-screen grid grid-rows-4 mt-6 alig"
     >
-      <div className="flex flex-col items-start">
-        <h1 className="text-9xl py-3 font-bold">Humankind</h1>
+      <div className="flex flex-col ">
+        <h1 className="text-9xl mt-24 font-bold ">Humankind</h1>
       </div>
       <div className="flex flex-col items-top text-justify  pr-8 text-sm  backdrop-blur-md p-2">
         <p className="text-[var(--color-text-light)] max-w-4xl  backdrop-blur-md my-3 text-2xl">
@@ -26,7 +26,7 @@ const HomeSection = () => {
 
         <div className="flex flex-row gap-4 items-start justify-start mt-2">
           <Button
-            variant="outline"
+            variant="secondary"
             size="lg"
             onClick={() => {
               if (lenis) {
@@ -37,7 +37,7 @@ const HomeSection = () => {
             See our work
           </Button>
           <Button
-            variant="primary"
+            variant="outline"
             size="lg"
             onClick={() => {
               if (lenis) {

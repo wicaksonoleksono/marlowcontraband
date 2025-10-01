@@ -108,7 +108,10 @@ const Header: React.FC<HeaderProps> = ({ isScrollMode = false }) => {
     `;
   };
   return (
-    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50" style={{width: 'var(--layout-width)'}}>
+    <div
+      className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50"
+      style={{ width: "var(--layout-width)" }}
+    >
       {/* Background with blur and mask to create hole */}
       <div
         className="absolute inset-0 backdrop-blur-md border border-[var(--color-primary)]"
@@ -143,7 +146,7 @@ const Header: React.FC<HeaderProps> = ({ isScrollMode = false }) => {
               </Link>
             ))}
           </nav>
-          {/* <DarkModeToggle /> */}
+          <DarkModeToggle />
         </div>
       </div>
     </div>

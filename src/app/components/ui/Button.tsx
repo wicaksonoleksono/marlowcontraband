@@ -3,7 +3,7 @@ import React from 'react';
 interface ButtonProps {
   children: React.ReactNode;
   onClick?: () => void;
-  variant?: 'primary' | 'outline' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   className?: string;
   disabled?: boolean;
@@ -22,7 +22,8 @@ export default function Button({
   const baseStyles = 'font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-opacity-50';
   
   const variantStyles = {
-    primary: 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-secondary)] border border-[var(--color-primary)] hover:border-[var(--color-secondary)]',
+    primary: 'bg-[var(--color-primary)] text-white hover:opacity-90 border border-[var(--color-primary)]',
+    secondary: 'border border-[var(--color-secondary)] text-[var(--color-secondary)] hover:bg-[var(--color-secondary)] hover:text-white',
     outline: 'border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white',
     ghost: 'text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:bg-opacity-10'
   };
