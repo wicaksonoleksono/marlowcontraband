@@ -12,6 +12,11 @@
   --tag-text: #ffffff;
   --layout-width: 85vw;
   
+  /* Brush gradient colors for light mode */
+  --brush-color-1: #14b8a6; /* teal */
+  --brush-color-2: #ec4899; /* pink */
+  --brush-color-3: #a855f7; /* light purple */
+  
   /* ThreeJS colors for light mode */
   --three-bg: #000000;
   --three-hemisphere-sky: #ffffff;
@@ -33,6 +38,11 @@
   --color-text-light: #ffffff;
   --color-warning: #BB86FC;
   --tag-text: #000000;
+  
+  /* Brush gradient colors for dark mode */
+  --brush-color-1: #fb7185; /* orange */
+  --brush-color-2: #4ade80; /* light green */
+  --brush-color-3: #60a5fa; /* light blue */
   
   /* ThreeJS colors for dark mode */
   --three-bg: #0a0a0a;

@@ -1,9 +1,9 @@
 "use client";
 ///app/components/sections/HomeSection.tsx
 import React from "react";
-import StreamingTextOnLock from "@/app/utils/StreamingTextOnLock";
 import Button from "../components/ui/Button";
 import { useLenis } from "@/app/hooks/LenisContext";
+import BrushBlur from "../components/ui/AnimatedBlurContainer";
 const HomeSection = () => {
   const lenis = useLenis();
 
@@ -12,13 +12,14 @@ const HomeSection = () => {
     <section
       id="home"
       data-section="home"
-      className="min-h-screen grid grid-rows-4 mt-6 alig"
+      className="min-h-screen grid grid-rows-2 mt-6 alig"
     >
-      <div className="flex flex-col ">
+      <BrushBlur
+        className="flex flex-col items-top text-justify  pr-8 text-sm  p-2"
+        radiusPx={300}
+      >
         <h1 className="text-9xl mt-24 font-bold ">Humankind</h1>
-      </div>
-      <div className="flex flex-col items-top text-justify  pr-8 text-sm  backdrop-blur-md p-2">
-        <p className="text-[var(--color-text-light)] max-w-4xl  backdrop-blur-md my-3 text-2xl">
+        <p className="text-[var(--color-text-light)] max-w-4xl my-3 text-2xl">
           Multidisciplinary research and development lab, where we turn
           child-like curiosity into products you can use with seamless
           integration
@@ -48,7 +49,7 @@ const HomeSection = () => {
             Contact Us
           </Button>
         </div>
-      </div>
+      </BrushBlur>
     </section>
   );
 };

@@ -253,13 +253,13 @@ export default function EdgeRootCanvas({
         tube1.geometry.dispose();
         geom1 = new THREE.TubeGeometry(curve1, 200, 0.045, 16, false);
         tube1.geometry = geom1;
-        
+
         // Rebuild second tube
         curve2 = new THREE.CatmullRomCurve3(pts2, false, "catmullrom", 0.3);
         tube2.geometry.dispose();
         geom2 = new THREE.TubeGeometry(curve2, 200, 0.035, 16, false);
         tube2.geometry = geom2;
-        
+
         rebuildCooldown = 2;
       }
 

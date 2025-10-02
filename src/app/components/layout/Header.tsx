@@ -5,6 +5,7 @@ import Link from "next/link";
 import { pagesConfig } from "../../config/pages";
 import { useLenis } from "../../hooks/LenisContext"; // 1. Import the hook!
 import DarkModeToggle from "../ui/DarkModeToggle";
+import BrushBlur from "../ui/AnimatedBlurContainer";
 // 2. Remove scrollTo from the props interface
 interface HeaderProps {
   isScrollMode?: boolean;
@@ -112,7 +113,7 @@ const Header: React.FC<HeaderProps> = ({ isScrollMode = false }) => {
       className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50"
       style={{ width: "var(--layout-width)" }}
     >
-      {/* Background with blur and mask to create hole */}
+      {/* Background with mask to create hole */}
       <div
         className="absolute inset-0 backdrop-blur-md border border-[var(--color-primary)]"
         style={{
@@ -121,34 +122,36 @@ const Header: React.FC<HeaderProps> = ({ isScrollMode = false }) => {
           WebkitClipPath: generateMask(),
         }}
       />
-      <div className="relative flex items-center justify-between px-5 py-2">
-        <Link href="/">
-          <h1 className="text font-bold hover:text-[var(--color-primary)] transition-colors cursor-pointer">
-            Humankind
-            <br />
-          </h1>
-        </Link>
-        <div className="flex items-center gap-4">
-          <nav className="flex gap-6 overflow-x-auto" id="navbar-list">
-            {pagesConfig.map((page) => (
-              <Link
-                key={page.id}
-                href={isScrollMode ? page.anchor : page.route}
-                className={`font-bold transition-colors whitespace-nowrap px-3 py-1 relative ${
-                  isScrollMode && activeSection === page.id
-                    ? " border-1 border-[var(--color-primary)]"
-                    : "hover:text-[var(--color-primary)] rounded-md"
-                }`}
-                data-section={page.id}
-                onClick={isScrollMode ? handleSmoothScroll : undefined}
-              >
-                {page.displayName}
-              </Link>
-            ))}
-          </nav>
-          <DarkModeToggle />
+      <BrushBlur className="relative border-1" radiusPx={100}>
+        <div className="flex items-center justify-between px-5 py-2">
+          <Link href="/">
+            <h1 className="text font-bold hover:text-[var(--color-primary)] transition-colors cursor-pointer">
+              Humankind
+              <br />
+            </h1>
+          </Link>
+          <div className="flex items-center gap-4">
+            <nav className="flex gap-6 overflow-x-auto" id="navbar-list">
+              {pagesConfig.map((page) => (
+                <Link
+                  key={page.id}
+                  href={isScrollMode ? page.anchor : page.route}
+                  className={`font-bold transition-colors whitespace-nowrap px-3 py-1 relative ${
+                    isScrollMode && activeSection === page.id
+                      ? " border-1 border-[var(--color-primary)]"
+                      : "hover:text-[var(--color-primary)] rounded-md"
+                  }`}
+                  data-section={page.id}
+                  onClick={isScrollMode ? handleSmoothScroll : undefined}
+                >
+                  {page.displayName}
+                </Link>
+              ))}
+            </nav>
+            <DarkModeToggle />
+          </div>
         </div>
-      </div>
+      </BrushBlur>
     </div>
   );
 };

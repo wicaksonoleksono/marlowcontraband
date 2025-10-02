@@ -1,7 +1,7 @@
 import React from "react";
 import StreamingTextOnLock from "../utils/StreamingTextOnLock";
 import { useLenis } from "../hooks/LenisContext";
-
+import BrushBlur from "../components/ui/AnimatedBlurContainer";
 const AboutSection = () => {
   const lenis = useLenis();
 
@@ -12,7 +12,10 @@ const AboutSection = () => {
 
         {/* Section 1: Content RIGHT, Image LEFT */}
         <div className="grid md:grid-cols-2 gap-12 mb-16">
-          <div className="flex flex-col items-top text-justify pr-8 text-sm backdrop-blur-md p-4">
+          <BrushBlur
+            radiusPx={120}
+            className="flex flex-col items-top text-justify pr-8 text-sm  p-4"
+          >
             {/* Left side - Gallery image */}
             <div className="w-full h-64 overflow-hidden flex items-center justify-center">
               <img
@@ -21,8 +24,8 @@ const AboutSection = () => {
                 className="w-full h-full object-cover"
               />
             </div>
-          </div>
-          <div className="backdrop-blur-md p-4">
+          </BrushBlur>
+          <BrushBlur radiusPx={120} className=" p-4">
             <p className="text-xl pb-3">Who, What, Where?</p>
             <StreamingTextOnLock
               allowHtml={true}
@@ -32,12 +35,12 @@ const AboutSection = () => {
             `}
               mode="char"
             />
-          </div>
+          </BrushBlur>
         </div>
 
         {/* Section 2: Content LEFT, Image RIGHT */}
         <div className="grid md:grid-cols-2 gap-12 mb-16">
-          <div className="backdrop-blur-md p-4">
+          <BrushBlur radiusPx={120} className=" p-4">
             <p className="text-xl">philosophy: curiosity taught the cat</p>
             <div className="text-[var(--color-text-light)] mt-4">
               <p>
@@ -56,8 +59,11 @@ const AboutSection = () => {
                 complicate it.
               </p>
             </div>
-          </div>
-          <div className="flex flex-col items-top text-justify pl-8 text-sm backdrop-blur-md p-4">
+          </BrushBlur>
+          <BrushBlur
+            radiusPx={120}
+            className="flex flex-col items-top text-justify pl-8 text-sm p-4"
+          >
             {/* Right side - Running image */}
             <div className="w-full h-64 overflow-hidden flex items-center justify-center">
               <img
@@ -66,13 +72,13 @@ const AboutSection = () => {
                 className="w-full h-full object-cover"
               />
             </div>
-          </div>
+          </BrushBlur>
         </div>
 
         {/* Section 3: Our Method - Full Width with Center Text and 4 Subsections */}
         <div className="mb-16 mx-auto mt-100" style={{ width: "65vw" }}>
           <div
-            className="text-justify backdrop-blur-md p-4 mb-8"
+            className="text-justify  p-4 mb-8"
             style={{
               marginLeft: "calc((100vw - 65vw) * 2/3)",
               marginRight: "calc((100vw - 65vw) * 2/3)",
