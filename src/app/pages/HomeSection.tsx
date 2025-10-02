@@ -18,7 +18,7 @@ const HomeSection = () => {
         className="flex flex-col items-top text-justify  pr-8 text-sm  p-2"
         radiusPx={300}
       >
-        <h1 className="text-9xl mt-24 font-bold ">Humankind</h1>
+        <h1 className="text-9xl mt-24 font-bold ">mantra</h1>
         <p className="text-[var(--color-text-light)] max-w-4xl my-3 text-2xl">
           Multidisciplinary research and development lab, where we turn
           child-like curiosity into products you can use with seamless

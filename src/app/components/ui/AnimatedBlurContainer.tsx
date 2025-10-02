@@ -52,7 +52,7 @@ const BrushBlur: React.FC<BrushBlurProps> = ({
       onMouseMove={onMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`relative overflow-hidden backdrop-blur-md ${className}`}
+      className={`relative overflow-hidden ${className}`}
       style={style}
     >
       {/* spotlight layer (always on) */}

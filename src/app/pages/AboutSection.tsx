@@ -30,7 +30,7 @@ const AboutSection = () => {
             <StreamingTextOnLock
               allowHtml={true}
               text={`
-              Humankind is a multidiciplinary engineering research lab based in <b>Jakarta Indonesia</b>, <br>  <br> building systems where automation and pattern recognition work hand in hand.  
+              mantra is a multidiciplinary engineering research lab based in <b>Jakarta Indonesia</b>, <br>  <br> building systems where automation and pattern recognition work hand in hand.  
               From discrete to continuous and probabilistic recognition, our approach is to simplify the complex and create software that feels intuitive, seamless, and easy to use. 
             `}
               mode="char"

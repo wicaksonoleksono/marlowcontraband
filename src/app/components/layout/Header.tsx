@@ -110,7 +110,7 @@ const Header: React.FC<HeaderProps> = ({ isScrollMode = false }) => {
   };
   return (
     <div
-      className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50"
+      className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 overflow-visible"
       style={{ width: "var(--layout-width)" }}
     >
       {/* Background with mask to create hole */}
@@ -122,11 +122,11 @@ const Header: React.FC<HeaderProps> = ({ isScrollMode = false }) => {
           WebkitClipPath: generateMask(),
         }}
       />
-      <BrushBlur className="relative border-1" radiusPx={100}>
+      <BrushBlur className="relative border-1 overflow-visible" radiusPx={100}>
         <div className="flex items-center justify-between px-5 py-2">
           <Link href="/">
             <h1 className="text font-bold hover:text-[var(--color-primary)] transition-colors cursor-pointer">
-              Humankind
+              mantra
               <br />
             </h1>
           </Link>
