@@ -8,6 +8,7 @@ import ResearchSection from "./pages/ResearchSection";
 import ContactSection from "./pages/ContactSection";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/footer";
+import { Analytics } from "@vercel/analytics/next";
 import { LenisProvider } from "./hooks/LenisContext";
 // import ThreeBackground from "./components/ThreeBackground";
 import EdgeRootCanvas from "./components/ThreeBackground";
@@ -30,6 +31,7 @@ export default function RootPage() {
             <ContactSection />
           </div>
         </div>
+        <Analytics />
         <Footer />
       </div>
     </LenisProvider>
