@@ -1,183 +1,27 @@
 import ProductArticleLayout from "../../components/layout/ProductArticleLayout";
 export default function AutomationPlatformArticle() {
   return ProductArticleLayout({
-    title: "Automation Platform",
+    title: "togetherbase",
     description:
-      "Enterprise-grade automation platform that handles complex workflows, integrates with existing systems, and scales with your operations.",
+      "Connecting learners with tutors on multidisciplinary courses.",
     children: (
       <>
         <p className="text-xl mb-8">
-          We build automation that doesn't break. Systems that learn your
-          patterns and adapt to change without constant maintenance.
+          A platform that brings together passionate learners and expert tutors across diverse disciplines.
         </p>
 
         <p className="mb-6">
-          The platform handles the complexity behind the scenes. Connect your
-          existing tools. Define your workflows. Let it run. No vendor lock-in,
-          no proprietary formats, no black boxes.
+          Whether you're looking to master a new skill or share your expertise, togetherbase creates meaningful connections in a learning community built on curiosity and collaboration.
         </p>
 
-        <p className="mb-6">
-          It scales with your operations, from processing dozens of tasks to
-          managing enterprise workflows across distributed teams. The same
-          principles that work for small automations work at scale. It scales
-          with your operations, from processing dozens of tasks to managing
-          enterprise workflows across distributed teams. The same principles
-          that work for small automations work at scale. It scales with your
-          operations, from processing dozens of tasks to managing enterprise
-          workflows across distributed teams. The same principles that work for
-          small automations work at scale. It scales with your operations, from
-          processing dozens of tasks to managing enterprise workflows across
-          distributed teams. The same principles that work for small automations
-          work at scale. It scales with your operations, from processing dozens
-          of tasks to managing enterprise workflows across distributed teams.
-          The same principles that work for small automations work at scale. It
-          scales with your operations, from processing dozens of tasks to
-          managing enterprise workflows across distributed teams. The same
-          principles that work for small automations work at scale. It scales
-          with your operations, from processing dozens of tasks to managing
-          enterprise workflows across distributed teams. The same principles
-          that work for small automations work at scale. It scales with your
-          operations, from processing dozens of tasks to managing enterprise
-          workflows across distributed teams. The same principles that work for
-          small automations work at scale. It scales with your operations, from
-          processing dozens of tasks to managing enterprise workflows across
-          distributed teams. The same principles that work for small automations
-          work at scale. It scales with your operations, from processing dozens
-          of tasks to managing enterprise workflows across distributed teams.
-          The same principles that work for small automations work at scale. It
-          scales with your operations, from processing dozens of tasks to
-          managing enterprise workflows across distributed teams. The same
-          principles that work for small automations work at scale. It scales
-          with your operations, from processing dozens of tasks to managing
-          enterprise workflows across distributed teams. The same principles
-          that work for small automations work at scale. It scales with your
-          operations, from processing dozens of tasks to managing enterprise
-          workflows across distributed teams. The same principles that work for
-          small automations work at scale. It scales with your operations, from
-          processing dozens of tasks to managing enterprise workflows across
-          distributed teams. The same principles that work for small automations
-          work at scale. It scales with your operations, from processing dozens
-          of tasks to managing enterprise workflows across distributed teams.
-          The same principles that work for small automations work at scale. It
-          scales with your operations, from processing dozens of tasks to
-          managing enterprise workflows across distributed teams. The same
-          principles that work for small automations work at scale. It scales
-          with your operations, from processing dozens of tasks to managing
-          enterprise workflows across distributed teams. The same principles
-          that work for small automations work at scale. It scales with your
-          operations, from processing dozens of tasks to managing enterprise
-          workflows across distributed teams. The same principles that work for
-          small automations work at scale. It scales with your operations, from
-          processing dozens of tasks to managing enterprise workflows across
-          distributed teams. The same principles that work for small automations
-          work at scale. It scales with your operations, from processing dozens
-          of tasks to managing enterprise workflows across distributed teams.
-          The same principles that work for small automations work at scale. It
-          scales with your operations, from processing dozens of tasks to
-          managing enterprise workflows across distributed teams. The same
-          principles that work for small automations work at scale. It scales
-          with your operations, from processing dozens of tasks to managing
-          enterprise workflows across distributed teams. The same principles
-          that work for small automations work at scale. It scales with your
-          operations, from processing dozens of tasks to managing enterprise
-          workflows across distributed teams. The same principles that work for
-          small automations work at scale. It scales with your operations, from
-          processing dozens of tasks to managing enterprise workflows across
-          distributed teams. The same principles that work for small automations
-          work at scale. It scales with your operations, from processing dozens
-          of tasks to managing enterprise workflows across distributed teams.
-          The same principles that work for small automations work at scale. It
-          scales with your operations, from processing dozens of tasks to
-          managing enterprise workflows across distributed teams. The same
-          principles that work for small automations work at scale. It scales
-          with your operations, from processing dozens of tasks to managing
-          enterprise workflows across distributed teams. The same principles
-          that work for small automations work at scale. It scales with your
-          operations, from processing dozens of tasks to managing enterprise
-          workflows across distributed teams. The same principles that work for
-          small automations work at scale. It scales with your operations, from
-          processing dozens of tasks to managing enterprise workflows across
-          distributed teams. The same principles that work for small automations
-          work at scale. It scales with your operations, from processing dozens
-          of tasks to managing enterprise workflows across distributed teams.
-          The same principles that work for small automations work at scale. It
-          scales with your operations, from processing dozens of tasks to
-          managing enterprise workflows across distributed teams. The same
-          principles that work for small automations work at scale. It scales
-          with your operations, from processing dozens of tasks to managing
-          enterprise workflows across distributed teams. The same principles
-          that work for small automations work at scale. It scales with your
-          operations, from processing dozens of tasks to managing enterprise
-          workflows across distributed teams. The same principles that work for
-          small automations work at scale. It scales with your operations, from
-          processing dozens of tasks to managing enterprise workflows across
-          distributed teams. The same principles that work for small automations
-          work at scale. It scales with your operations, from processing dozens
-          of tasks to managing enterprise workflows across distributed teams.
-          The same principles that work for small automations work at scale. It
-          scales with your operations, from processing dozens of tasks to
-          managing enterprise workflows across distributed teams. The same
-          principles that work for small automations work at scale. It scales
-          with your operations, from processing dozens of tasks to managing
-          enterprise workflows across distributed teams. The same principles
-          that work for small automations work at scale. It scales with your
-          operations, from processing dozens of tasks to managing enterprise
-          workflows across distributed teams. The same principles that work for
-          small automations work at scale. It scales with your operations, from
-          processing dozens of tasks to managing enterprise workflows across
-          distributed teams. The same principles that work for small automations
-          work at scale. It scales with your operations, from processing dozens
-          of tasks to managing enterprise workflows across distributed teams.
-          The same principles that work for small automations work at scale. It
-          scales with your operations, from processing dozens of tasks to
-          managing enterprise workflows across distributed teams. The same
-          principles that work for small automations work at scale. It scales
-          with your operations, from processing dozens of tasks to managing
-          enterprise workflows across distributed teams. The same principles
-          that work for small automations work at scale. It scales with your
-          operations, from processing dozens of tasks to managing enterprise
-          workflows across distributed teams. The same principles that work for
-          small automations work at scale. It scales with your operations, from
-          processing dozens of tasks to managing enterprise workflows across
-          distributed teams. The same principles that work for small automations
-          work at scale. It scales with your operations, from processing dozens
-          of tasks to managing enterprise workflows across distributed teams.
-          The same principles that work for small automations work at scale. It
-          scales with your operations, from processing dozens of tasks to
-          managing enterprise workflows across distributed teams. The same
-          principles that work for small automations work at scale. It scales
-          with your operations, from processing dozens of tasks to managing
-          enterprise workflows across distributed teams. The same principles
-          that work for small automations work at scale. It scales with your
-          operations, from processing dozens of tasks to managing enterprise
-          workflows across distributed teams. The same principles that work for
-          small automations work at scale. It scales with your operations, from
-          processing dozens of tasks to managing enterprise workflows across
-          distributed teams. The same principles that work for small automations
-          work at scale. It scales with your operations, from processing dozens
-          of tasks to managing enterprise workflows across distributed teams.
-          The same principles that work for small automations work at scale. It
-          scales with your operations, from processing dozens of tasks to
-          managing enterprise workflows across distributed teams. The same
-          principles that work for small automations work at scale. It scales
-          with your operations, from processing dozens of tasks to managing
-          enterprise workflows across distributed teams. The same principles
-          that work for small automations work at scale. It scales with your
-          operations, from processing dozens of tasks to managing enterprise
-          workflows across distributed teams. The same principles that work for
-          small automations work at scale. It scales with your operations, from
-          processing dozens of tasks to managing enterprise workflows across
-          distributed teams. The same principles that work for small automations
-          work at scale. It scales with your operations, from processing dozens
-          of tasks to managing enterprise workflows across distributed teams.
-          The same principles that work for small automations work at scale. It
-          scales with your operations, from processing dozens of tasks to
-          managing enterprise workflows across distributed teams. The same
-          principles that work for small automations work at scale.
-        </p>
+        {/* Placeholder for carousel */}
+        <div className="my-12 p-12 border-2 border-dashed border-[var(--color-primary)] border-opacity-30 rounded-lg bg-[var(--color-primary)] bg-opacity-5 flex items-center justify-center">
+          <p className="text-[var(--color-text-light)] text-center">
+            [Carousel placeholder - UI coming soon]
+          </p>
+        </div>
 
-        <p>Available now. Deployment in weeks, not months.</p>
+        <p className="text-center text-2xl font-bold mt-8">Coming soon!</p>
       </>
     ),
   });

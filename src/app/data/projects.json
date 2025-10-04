@@ -1,16 +1,9 @@
 [
   {
     "id": "project-1",
-    "title": "marlow's-companion",
+    "title": "basemap",
     "description": "A coding tool based off user-stories to plan and built using, indexing technology",
     "stack": ["python", "rust", "typescript"],
     "github": "https://github.com/wicaksonoleksono/companion-by-marlow"
-  },
-  {
-    "id": "project-2",
-    "title": "marlow's-curiosity",
-    "description": "A free place to learn like khan academy without gamification rather relies on independences and pure curiosity for 1 grader to college level student or for general curious person ",
-    "stack": ["NextJS", "Redis", "Postgre"],
-    "github": "https://github.com/wicaksonoleksono/learnbycuriosity.marlow.com"
   }
 ]

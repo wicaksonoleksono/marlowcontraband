@@ -1,16 +1,16 @@
 import ProductArticleLayout from "../../components/layout/ProductArticleLayout";
 export default function LightRag() {
   return ProductArticleLayout({
-    title: "mm-rag",
+    title: "mc-rag",
     description:
-      "Enterprise-grade automation platform that handles complex workflows, integrates with existing systems, and scales with your operations.",
+      "Multi-context graph based RAG",
     children: (
       <>
-        <p className="text-xl mb-8">Multi-modal easy graph rag</p>
+        <p className="text-xl mb-8">Multi-context graph based RAG</p>
 
-        <p className="mb-6">multimodal-graph rag</p>
+        <p className="mb-6">A retrieval-augmented generation system that leverages multi-context graph structures for enhanced knowledge retrieval and reasoning.</p>
 
-        <p>Available now. Deployment in weeks, not months.</p>
+        <p className="text-center text-2xl font-bold mt-8">Coming soon!</p>
       </>
     ),
   });

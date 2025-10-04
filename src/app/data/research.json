@@ -24,12 +24,6 @@
     "description": "Language + vision, audio, and video; unified embeddings, modality alignment, richer multimodal representations for reasoning and generation."
   },
   {
-    "id": "nlp_trustworthy",
-    "title": "Fact-Checking & Trustworthy NLP",
-    "group": "nlp",
-    "description": "Hallucination detection, verifiability, explainability, and bias mitigation; building reliable and transparent NLP systems for high-stakes domains."
-  },
-  {
     "id": "cv_3d_and_neural_rendering",
     "title": "3D & Neural Rendering",
     "group": "cv",
@@ -46,8 +40,37 @@
   {
     "id": "cv_multimodal_and_vision_language",
     "title": "Multimodal & Vision-Language",
-
     "group": "cv",
     "description": "Vision + text / audio, visual reasoning, grounding, embodied perception, vision-language action models"
+  },
+  {
+    "id": "robotics_rlhf",
+    "title": "AI on Robotics (RLHF)",
+    "group": "robotics",
+    "description": "Reinforcement learning from human feedback applied to robotic systems; learning policies, manipulation tasks, and embodied agents through human preferences"
+  },
+  {
+    "id": "simulation_terrain",
+    "title": "Terrain Simulation",
+    "group": "simulation",
+    "description": "Physics-based terrain generation, procedural landscapes, erosion models, real-time deformation, and realistic environment synthesis"
+  },
+  {
+    "id": "crypto_post_quantum",
+    "title": "Post-Quantum Cryptography",
+    "group": "math",
+    "description": "Lattice-based, code-based, and hash-based cryptographic schemes resistant to quantum attacks; mathematical foundations for quantum-safe security"
+  },
+  {
+    "id": "systems_multi_agent",
+    "title": "Multi-Agent Systems",
+    "group": "systems",
+    "description": "Coordination, emergent behavior, swarm intelligence, distributed decision-making; systems where multiple autonomous agents interact and cooperate"
+  },
+  {
+    "id": "ml_graph_networks",
+    "title": "Graph Neural Networks",
+    "group": "graph",
+    "description": "Learning on graph-structured data, relational reasoning, message passing, graph transformers; applications in knowledge graphs and multi-context systems"
   }
 ]

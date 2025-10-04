@@ -10,7 +10,7 @@
   --color-text-light: #6b7280;
   --color-warning: #000000;
   --tag-text: #ffffff;
-  --layout-width: 85vw;
+  --layout-width: 95vw; /* Mobile first */
   
   /* Brush gradient colors for light mode */
   --brush-color-1: #14b8a6; /* teal */
@@ -96,6 +96,25 @@ body {
 }
 html {
   scroll-padding-top: 100px;
+}
+
+/* Responsive layout widths */
+@media (min-width: 768px) {
+  :root {
+    --layout-width: 90vw;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --layout-width: 85vw;
+  }
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --layout-width: 80vw;
+  }
 }
 
 section[id] {
