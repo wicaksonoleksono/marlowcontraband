@@ -17,7 +17,7 @@ const ContactSection = () => {
           specialize in building custom software that automates complex
           processes and scales with your needs. Whether you have an
           industry-specific problem or want to collaborate on cutting-edge
-          research, let's create something meaningful together.
+          research, let&apos;s create something meaningful together.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <Button

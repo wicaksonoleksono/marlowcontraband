@@ -11,7 +11,7 @@ export default function AutomationPlatformArticle() {
         </p>
 
         <p className="mb-6">
-          Whether you're looking to master a new skill or share your expertise, togetherbase creates meaningful connections in a learning community built on curiosity and collaboration.
+          Whether you&apos;re looking to master a new skill or share your expertise, togetherbase creates meaningful connections in a learning community built on curiosity and collaboration.
         </p>
 
         {/* Placeholder for carousel */}

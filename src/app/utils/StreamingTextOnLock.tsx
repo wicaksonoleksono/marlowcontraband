@@ -21,7 +21,7 @@ function buildStreamedHtml(html: string, charCount: number): string {
   while (i < html.length && plainTextIndex < charCount) {
     if (html[i] === "<") {
       // Find the end of the tag
-      let tagEnd = html.indexOf(">", i);
+      const tagEnd = html.indexOf(">", i);
       if (tagEnd !== -1) {
         // Add the entire tag
         result += html.substring(i, tagEnd + 1);
@@ -43,7 +43,6 @@ function buildStreamedHtml(html: string, charCount: number): string {
   const openTags: string[] = [];
   const tagRegex = /<(\/?)([\w-]+)(?:\s[^>]*)?>/g;
   let match;
-  let tempResult = result;
 
   while ((match = tagRegex.exec(result)) !== null) {
     const isClosing = match[1] === "/";
@@ -118,7 +117,7 @@ export default function StreamingTextOnLock({
         lenis.start();
 
         // Tear down listeners and trigger so it won't re-fire. // NEW
-        window.removeEventListener("wheel", handleWheel as any);
+        window.removeEventListener("wheel", handleWheel as EventListener);
         if (st) st.kill();
       }
     };
@@ -155,7 +154,7 @@ export default function StreamingTextOnLock({
     }, ref);
 
     return () => {
-      window.removeEventListener("wheel", handleWheel as any);
+      window.removeEventListener("wheel", handleWheel as EventListener);
       if (st) st.kill();
       ctx.revert();
       lenis.start();

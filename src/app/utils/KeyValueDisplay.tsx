@@ -1,9 +1,9 @@
 import React from "react";
 
 interface KeyValueDisplayProps {
-  data: Record<string, any>;
+  data: Record<string, unknown>;
   className?: string;
-  onItemClick?: (key: string, value: any) => void;
+  onItemClick?: (key: string, value: unknown) => void;
 }
 
 const KeyValueDisplay: React.FC<KeyValueDisplayProps> = ({ 
@@ -20,13 +20,13 @@ const KeyValueDisplay: React.FC<KeyValueDisplayProps> = ({
     }
   };
 
-  const handleItemClick = (key: string, value: any) => {
+  const handleItemClick = (key: string, value: unknown) => {
     if (onItemClick) {
       onItemClick(key, value);
     }
   };
 
-  const renderValue = (key: string, value: any) => {
+  const renderValue = (key: string, value: unknown) => {
     // Array values - render as tags
     if (Array.isArray(value)) {
       return (
