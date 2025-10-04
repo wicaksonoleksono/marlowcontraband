@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 import StreamingTextOnLock from "../utils/StreamingTextOnLock";
 import { useLenis } from "../hooks/LenisContext";
 import BrushBlur from "../components/ui/AnimatedBlurContainer";
@@ -16,20 +17,24 @@ const AboutSection = () => {
             radiusPx={120}
             className="hidden md:flex flex-col items-top text-justify pr-8 text-sm p-4"
           >
-            <div className="w-full h-64 overflow-hidden flex items-center justify-center">
-              <img
+            <div className="w-full h-64 relative overflow-hidden">
+              <Image
                 src="/images/gallery-visitor.jpg"
                 alt="Person viewing artwork in gallery"
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
               />
             </div>
           </BrushBlur>
           <div className="md:hidden p-4">
-            <div className="w-full h-48 overflow-hidden flex items-center justify-center">
-              <img
+            <div className="w-full h-48 relative overflow-hidden">
+              <Image
                 src="/images/gallery-visitor.jpg"
                 alt="Person viewing artwork in gallery"
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
+                sizes="100vw"
               />
             </div>
           </div>
@@ -88,20 +93,24 @@ const AboutSection = () => {
             radiusPx={120}
             className="hidden md:flex flex-col items-top text-justify pl-8 text-sm p-4"
           >
-            <div className="w-full h-64 overflow-hidden flex items-center justify-center">
-              <img
+            <div className="w-full h-64 relative overflow-hidden">
+              <Image
                 src="/images/running.jpg"
                 alt="Running"
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
               />
             </div>
           </BrushBlur>
           <div className="md:hidden p-4">
-            <div className="w-full h-48 overflow-hidden flex items-center justify-center">
-              <img
+            <div className="w-full h-48 relative overflow-hidden">
+              <Image
                 src="/images/running.jpg"
                 alt="Running"
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
+                sizes="100vw"
               />
             </div>
           </div>
@@ -113,20 +122,24 @@ const AboutSection = () => {
             radiusPx={120}
             className="hidden md:flex flex-col items-top text-justify pr-8 text-sm p-4"
           >
-            <div className="w-full h-64 overflow-hidden flex items-center justify-center">
-              <img
+            <div className="w-full h-64 relative overflow-hidden">
+              <Image
                 src="/images/razorbil.jpg"
                 alt="Razorbill"
-                className="w-full h-full object-cover object-bottom"
+                fill
+                className="object-cover object-bottom"
+                sizes="(max-width: 768px) 100vw, 50vw"
               />
             </div>
           </BrushBlur>
           <div className="md:hidden p-4">
-            <div className="w-full h-48 overflow-hidden flex items-center justify-center">
-              <img
+            <div className="w-full h-48 relative overflow-hidden">
+              <Image
                 src="/images/razorbil.jpg"
                 alt="Razorbill"
-                className="w-full h-full object-cover object-bottom"
+                fill
+                className="object-cover object-bottom"
+                sizes="100vw"
               />
             </div>
           </div>

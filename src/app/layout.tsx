@@ -23,39 +23,64 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "mantera studio | Open Research Lab",
-  description: "Multidisciplinary research and development lab based in Jakarta, Indonesia. We're an open-source, open-community lab exploring AI, robotics, cryptography, and more. Turning child-like curiosity into reality.",
+  title: "mantera studio | Where Curiosity Turns Into Reality",
+  description: "mantera studio is a multidisciplinary research and development lab based in Jakarta, Indonesia. We turn child-like curiosity into reality through open-source research in AI, robotics, cryptography, and systems engineering.",
   keywords: [
-    "research lab",
-    "open source",
-    "AI research",
+    "mantera studio",
+    "research lab Jakarta",
+    "open source research",
+    "AI research Indonesia",
     "machine learning",
-    "robotics",
-    "RLHF",
+    "robotics RLHF",
     "post-quantum cryptography",
     "graph neural networks",
-    "Jakarta",
-    "Indonesia",
-    "software development",
+    "terrain simulation",
+    "multi-agent systems",
+    "software development Jakarta",
     "togetherbase",
     "mc-rag",
-    "terrain simulation",
-    "multi-agent systems"
+    "open community research",
+    "curiosity driven research",
+    "multidisciplinary lab",
+    "research and development Indonesia",
   ],
   authors: [{ name: "mantera studio" }],
   creator: "mantera studio",
+  publisher: "mantera studio",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
   openGraph: {
     type: "website",
     locale: "en_US",
+    alternateLocale: ["en_ID", "en_GB", "en_SG"],
     url: "https://mantera.studio",
-    title: "mantera studio | Open Research Lab",
-    description: "Multidisciplinary research lab exploring ideas across AI, robotics, cryptography, and systems. Open-source, open-community.",
+    title: "mantera studio | Where Curiosity Turns Into Reality",
+    description: "Multidisciplinary research lab in Jakarta turning child-like curiosity into reality. Open-source research in AI, robotics, cryptography, and systems engineering.",
     siteName: "mantera studio",
   },
   twitter: {
     card: "summary_large_image",
-    title: "mantera studio | Open Research Lab",
-    description: "Multidisciplinary research lab exploring ideas across AI, robotics, cryptography, and systems.",
+    title: "mantera studio | Where Curiosity Turns Into Reality",
+    description: "Multidisciplinary research lab in Jakarta turning child-like curiosity into reality. Open-source research in AI, robotics, cryptography.",
+  },
+  alternates: {
+    canonical: "https://mantera.studio",
+    languages: {
+      "en-US": "https://mantera.studio",
+      "en-ID": "https://mantera.studio",
+      "en-GB": "https://mantera.studio",
+      "en-SG": "https://mantera.studio",
+      "x-default": "https://mantera.studio",
+    },
   },
 };
 
@@ -64,8 +89,43 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ResearchOrganization",
+    name: "mantera studio",
+    alternateName: "mantera",
+    url: "https://mantera.studio",
+    logo: "https://mantera.studio/logo.png",
+    description: "Multidisciplinary research and development lab based in Jakarta, Indonesia. We turn child-like curiosity into reality through open-source research.",
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Jakarta",
+      addressCountry: "Indonesia",
+    },
+    sameAs: [
+      "https://github.com/wicaksonoleksono",
+    ],
+    areaServed: "Worldwide",
+    knowsAbout: [
+      "Artificial Intelligence",
+      "Machine Learning",
+      "Robotics",
+      "RLHF",
+      "Post-Quantum Cryptography",
+      "Graph Neural Networks",
+      "Terrain Simulation",
+      "Multi-Agent Systems",
+    ],
+  };
+
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${alegreya.variable} ${jetbrainsMono.variable} antialiased`}
       >
