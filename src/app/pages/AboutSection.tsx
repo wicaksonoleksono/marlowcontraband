@@ -64,8 +64,8 @@ const AboutSection = () => {
                 <strong>curiosity</strong>.
               </p>
               <p className="mt-3">
-                That curiosity makes us question everything. We don't just build
-                what's asked—we understand why it's needed, break it down to
+                That curiosity makes us question everything. We don&apos;t just build
+                what&apos;s asked—we understand why it&apos;s needed, break it down to
                 first principles, and craft solutions that make sense.
               </p>
             </div>
@@ -78,8 +78,8 @@ const AboutSection = () => {
                 <strong>curiosity</strong>.
               </p>
               <p className="mt-3">
-                That curiosity makes us question everything. We don't just build
-                what's asked—we understand why it's needed, break it down to
+                That curiosity makes us question everything. We don&apos;t just build
+                what&apos;s asked—we understand why it&apos;s needed, break it down to
                 first principles, and craft solutions that make sense.
               </p>
             </div>
@@ -135,14 +135,14 @@ const AboutSection = () => {
             <div className="text-[var(--color-text-light)] mt-4">
               <p>
                 <strong>
-                  Well, tbh doing only research doesn't pay the bills.
+                  Well, tbh doing only research doesn&apos;t pay the bills.
                 </strong>{" "}
                 So we build products and take on client work to fund our
                 explorations.
               </p>
               <p className="mt-3">
                 If you need software, try our proprietary products first—they
-                might solve your problem out of the box. If not, we'll build
+                might solve your problem out of the box. If not, we&apos;ll build
                 something custom. Either way, you get a solution and we get to
                 keep researching.
               </p>
@@ -153,14 +153,14 @@ const AboutSection = () => {
             <div className="text-[var(--color-text-light)] mt-4">
               <p>
                 <strong>
-                  Well, tbh doing only research doesn't pay the bills.
+                  Well, tbh doing only research doesn&apos;t pay the bills.
                 </strong>{" "}
                 So we build products and take on client work to fund our
                 explorations.
               </p>
               <p className="mt-3">
                 If you need software, try our proprietary products first—they
-                might solve your problem out of the box. If not, we'll build
+                might solve your problem out of the box. If not, we&apos;ll build
                 something custom. Either way, you get a solution and we get to
                 keep researching.
               </p>

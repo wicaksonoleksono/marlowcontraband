@@ -10,6 +10,7 @@ export interface ResearchArea {
   id: string;
   title: string;
   description: string;
+  group: string;
 }
 
 export interface HomeContent {

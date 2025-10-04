@@ -49,7 +49,6 @@ const Header: React.FC<HeaderProps> = ({ isScrollMode = false }) => {
     if (!lenis || !isScrollMode) return;
 
     const handleScroll = () => {
-      const scrollY = lenis.scroll;
 
       // Check which section is currently in view
       for (const page of pagesConfig) {
